@@ -156,6 +156,55 @@ These are stated once here; the narrative doc explains *why* each one exists.
   the full `research-memos/` directory. No caching or incremental index
   exists yet.
 
+## Deployment surfaces
+
+This codebase ships to two different runtimes, and they do **not** have the
+same capabilities — the split is dictated by what each runtime actually
+gives you, not by choice.
+
+```
+┌───────────────────────── CLI (this repo) ──────────────────────────┐
+│ Your machine — persistent disk, your gh auth                       │
+│                                                                      │
+│  pip install -e .  ──►  polyprompt/  (all 15 modules)               │
+│                                                                      │
+│  rewrite · intake · mode · taxonomy      (stateless core)           │
+│  memo · store                            (writes research-memos/)   │
+│  graph · validate · review · sufficiency (knowledge graph, persists)│
+│  push                                    (git push via gh)          │
+│  checkup                                 (profile-freshness ritual) │
+└──────────────────────────────────────────────────────────────────────┘
+
+┌────────────────── Skill (claude.ai, skills/polyprompt/) ───────────┐
+│ Anthropic's code-execution sandbox — spun up per conversation,     │
+│ no persistent disk, no gh auth                                     │
+│                                                                      │
+│  SKILL.md + a build of polyprompt/'s stateless core only:           │
+│  rewrite · intake · mode · taxonomy                                 │
+│                                                                      │
+│  ✗ memo/store   — nowhere durable to write research-memos/          │
+│  ✗ graph/review/sufficiency — the knowledge graph needs state       │
+│    across runs; the sandbox resets every conversation               │
+│  ✗ push/checkup — no gh auth, no reason to shell out                │
+└──────────────────────────────────────────────────────────────────────┘
+```
+
+`skills/polyprompt/build.sh` assembles the skill zip **from** `polyprompt/`
+at build time (copies the relevant `.py`/`.json` files, smoke-tests the
+bundle, zips it) rather than checking in a second copy — `polyprompt/` stays
+the single source of truth for the rewrite engine, so the skill can't
+silently drift out of sync with the CLI. Rebuild and re-upload after any
+change to `rewrite.py`, `ir.py`, `mode.py`, `taxonomy.py`, `taxonomy.v1.json`,
+or `profiles/*.json`.
+
+The knowledge-graph loop (`memo → store → graph → validate/review →
+sufficiency`) — the actual differentiator of this project, evidence
+accumulating across runs — is CLI-only and will stay that way until claude.ai
+Skills get persistent per-account storage. Don't try to work around this by
+smuggling state through the conversation itself (e.g. asking Claude to
+remember graph state across turns); that isn't the same guarantee as
+`load_graph`/`save_graph`'s full-file persistence and will silently diverge.
+
 ## Known gaps (honest, as of v0.8.0)
 
 These are real absences, not oversights hidden from you:
