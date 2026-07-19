@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+*.egg-info/
+build/
+dist/
+.DS_Store
+
+# Local memo corpus (never auto-committed; pushed only via the explicit push command)
+research-memos/
