@@ -8,9 +8,11 @@ Claude, Perplexity** — and writes an explanation memo per rewrite. The memos
 accumulate into a **knowledge graph of prompt-optimization tactics** that
 validates future rewrites.
 
-> Full engineering trail lives in-repo: `docs/EXPLAINER.md` (start here),
-> `docs/acc/` (build-decision log), `docs/scratchpad-*.md` (individual decision
-> records with rejected alternatives).
+> New here? `docs/EXPLAINER.md` — plain-English walkthrough.
+> Evaluating / contributing? `docs/ARCHITECTURE.md` — scannable reference
+> (invariants, data contracts, complexity notes, known gaps) + `CONTRIBUTING.md`.
+> Want the decision trail? `docs/acc/` (build log) and `docs/scratchpad-*.md`
+> (individual decisions with rejected alternatives).
 
 ## Status: v0.8.0 — M0–M7 complete
 
@@ -129,6 +131,7 @@ python -m pytest          # run the test suite (139 tests)
 
 ```
 LICENSE                      # MIT
+CONTRIBUTING.md               # TDD workflow, code style, PR conventions
 pyproject.toml               # package metadata; `forge` console-script entry point
 .claude-plugin/plugin.json   # Claude Code plugin manifest
 commands/                    # /forge-prompts, /forge-review, /forge-push, /forge-checkup
@@ -153,6 +156,7 @@ forge/
 tests/                       # golden-fixture + schema tests (139 passing)
 research-memos/              # generated memos (gitignored; pushed only via `forge push`)
 docs/EXPLAINER.md            # plain-English, stage-by-stage walkthrough of the whole pipeline
+docs/ARCHITECTURE.md         # scannable reference: invariants, data contracts, known gaps
 ```
 
 ## Memo frontmatter (the knowledge-graph contract)
