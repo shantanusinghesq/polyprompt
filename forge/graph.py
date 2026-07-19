@@ -64,6 +64,7 @@ class Edge:
     pos: int = 0
     neg: int = 0
     provenance: str = "label"  # "seed" | "label"
+    status: str = "active"  # "active" | "archived" (archive-not-delete, M6)
 
     @property
     def support(self) -> int:
@@ -75,7 +76,19 @@ class Edge:
 
     @property
     def promoted(self) -> bool:
-        return self.support >= K_MIN and self.weight >= THETA_HIGH
+        return (
+            self.status == "active"
+            and self.support >= K_MIN
+            and self.weight >= THETA_HIGH
+        )
+
+    @property
+    def contra(self) -> bool:
+        """Sustained negative evidence: the *negative* rate clears the same
+        Wilson gate that promotion uses. Below K_MIN never counts."""
+        return self.support >= K_MIN and wilson_lower_bound(
+            self.neg, self.support
+        ) >= THETA_HIGH
 
 
 EdgeKey = tuple[str, str, str]  # (tactic, dimension, value)
@@ -86,6 +99,7 @@ class Graph:
     taxonomy_version: str
     edges: dict[EdgeKey, Edge] = field(default_factory=dict)
     ingested: set[tuple[str, str]] = field(default_factory=set)  # (hash, engine)
+    reviewed: set[tuple[str, str, str]] = field(default_factory=set)  # (hash, engine, reviewer)
 
     def _edge(self, tactic: str, dimension: str, value: str, provenance: str) -> Edge:
         key = (tactic, dimension, value)
@@ -135,6 +149,16 @@ class Graph:
                 required[edge.tactic] = edge
         return required
 
+    def archive_contra(self) -> list[Edge]:
+        """Archive (never delete) active edges whose negative evidence has
+        promoted to contra. Returns the newly archived edges."""
+        archived = []
+        for edge in self.edges.values():
+            if edge.status == "active" and edge.contra:
+                edge.status = "archived"
+                archived.append(edge)
+        return archived
+
 
 def seed_graph(taxonomy: Taxonomy) -> Graph:
     """Cold-start graph from the a-priori seed associations, filtered against
@@ -171,6 +195,7 @@ def save_graph(graph: Graph, path: Path | str) -> None:
         "schema_version": "1",
         "taxonomy_version": graph.taxonomy_version,
         "ingested": sorted(list(k) for k in graph.ingested),
+        "reviewed": sorted(list(k) for k in graph.reviewed),
         "edges": [
             {
                 "tactic": e.tactic,
@@ -179,6 +204,7 @@ def save_graph(graph: Graph, path: Path | str) -> None:
                 "pos": e.pos,
                 "neg": e.neg,
                 "provenance": e.provenance,
+                "status": e.status,
             }
             for e in sorted(
                 graph.edges.values(), key=lambda e: (e.tactic, e.dimension, e.value)
@@ -194,6 +220,7 @@ def load_graph(path: Path | str) -> Graph:
     data = json.loads(Path(path).read_text())
     graph = Graph(taxonomy_version=data["taxonomy_version"])
     graph.ingested = {(h, engine) for h, engine in data.get("ingested", [])}
+    graph.reviewed = {tuple(k) for k in data.get("reviewed", [])}
     for entry in data.get("edges", []):
         key = (entry["tactic"], entry["dimension"], entry["value"])
         graph.edges[key] = Edge(**entry)

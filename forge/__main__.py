@@ -20,6 +20,7 @@ from forge.memo import build_memo, derive_tags
 from forge.mode import ModeDecision, detect_mode
 from forge.profile import ENGINES, load_all_profiles, load_profile
 from forge.push import DEFAULT_REPO, push_corpus
+from forge.review import Review, apply_review, load_reviews, mode_accuracy, save_review
 from forge.rewrite import RewriteResult, rewrite
 from forge.store import existing_keys, save_memo
 from forge.taxonomy import Taxonomy, load_taxonomy
@@ -103,6 +104,57 @@ def _cmd_intake(_args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_review(args: argparse.Namespace) -> int:
+    from datetime import datetime
+
+    from forge.memo import parse_frontmatter
+
+    memo_path = Path(args.memo)
+    try:
+        frontmatter = parse_frontmatter(memo_path.read_text())
+    except (OSError, ValueError) as exc:
+        print(f"error: cannot read memo {memo_path}: {exc}", file=sys.stderr)
+        return 2
+
+    try:
+        review = Review(
+            memo_filename=memo_path.name,
+            reviewer=args.reviewer,
+            intent_fidelity=args.intent,
+            quality=args.quality,
+            depth_explanation=args.explain,
+            mode_correct=args.mode_correct,
+            reviewed_at=datetime.now().isoformat(timespec="seconds"),
+        )
+    except ValueError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
+
+    sidecar = save_review(review, memo_path.parent)
+    print(f"Review saved: {sidecar}")
+
+    graph_path = Path(args.graph)
+    taxonomy = load_taxonomy()
+    graph = load_graph(graph_path) if graph_path.exists() else seed_graph(taxonomy)
+    verdict = apply_review(graph, frontmatter, review)
+    if verdict is None:
+        print(f"Graph: already reviewed by {args.reviewer} — no new labels")
+    else:
+        print(f"Graph: applied {verdict} labels")
+        for edge in graph.archive_contra():
+            print(
+                f"  archived contra edge: {edge.tactic} <-> "
+                f"{edge.dimension}={edge.value} (neg {edge.neg}/{edge.support})"
+            )
+    save_graph(graph, graph_path)
+    print(f"Graph saved: {graph_path}")
+
+    accuracy = mode_accuracy(load_reviews(memo_path.parent))
+    if accuracy is not None:
+        print(f"Mode accuracy: {accuracy:.0%} over reviewed memos in {memo_path.parent}")
+    return 0
+
+
 def _cmd_push(args: argparse.Namespace) -> int:
     directory = Path(args.dir)
     from datetime import datetime
@@ -167,6 +219,27 @@ def build_parser() -> argparse.ArgumentParser:
 
     intake_p = sub.add_parser("intake", help="Print the three intake questions.")
     intake_p.set_defaults(func=_cmd_intake)
+
+    review_p = sub.add_parser(
+        "review",
+        help="Record a distinct reviewer's rating for a memo and update the graph.",
+    )
+    review_p.add_argument("memo", help="Path to the memo .md file to review.")
+    review_p.add_argument("--reviewer", required=True, help="Reviewer name (distinct person).")
+    review_p.add_argument("--intent", type=int, required=True, choices=range(1, 6),
+                          metavar="1-5", help="Intent-fidelity rating.")
+    review_p.add_argument("--quality", type=int, required=True, choices=range(1, 6),
+                          metavar="1-5", help="Quality rating.")
+    review_p.add_argument("--explain", required=True,
+                          help="Depth-of-reasoning explanation for the ratings.")
+    mode_group = review_p.add_mutually_exclusive_group(required=True)
+    mode_group.add_argument("--mode-correct", dest="mode_correct", action="store_true",
+                            help="The detected mode was right for this prompt.")
+    mode_group.add_argument("--mode-wrong", dest="mode_correct", action="store_false",
+                            help="The detected mode was wrong.")
+    review_p.add_argument("--graph", default="research-memos/graph.json", metavar="PATH",
+                          help="Knowledge-graph JSON to update (default: research-memos/graph.json).")
+    review_p.set_defaults(func=_cmd_review)
 
     push_p = sub.add_parser(
         "push",
