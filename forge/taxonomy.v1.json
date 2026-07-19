@@ -1,0 +1,31 @@
+{
+  "version": "v1",
+  "tactics": [
+    {"id": "role-framing", "label": "Expert role framing", "description": "Assign the model an expert role to prime domain-appropriate depth and vocabulary."},
+    {"id": "explicit-constraints", "label": "Explicit constraint block", "description": "Enumerate requirements (time frame, depth, sources) as an unambiguous list."},
+    {"id": "structured-output", "label": "Structured output request", "description": "Ask for a sectioned, well-organized deliverable rather than free-form prose."},
+    {"id": "source-preference", "label": "Source preference", "description": "State preferred source types (primary, academic, official) to steer grounding."},
+    {"id": "citation-demand", "label": "Citation demand", "description": "Require inline citations so claims are traceable."},
+    {"id": "research-plan", "label": "Approvable research plan", "description": "Ask the engine to outline a plan before executing, matching plan-surfacing deep-research modes."},
+    {"id": "breadth-directive", "label": "Breadth directive", "description": "Instruct the engine to survey multiple perspectives and source types."},
+    {"id": "xml-structure", "label": "XML-delimited sections", "description": "Wrap task, constraints, and instructions in delimited tags for reliable parsing."},
+    {"id": "reasoning-depth", "label": "Reasoning-depth directive", "description": "Instruct explicit step-by-step reasoning across the requested number of layers."},
+    {"id": "uncertainty-flagging", "label": "Uncertainty flagging", "description": "Require the engine to flag uncertainty explicitly rather than guessing."},
+    {"id": "concise-query", "label": "Concise keyword query", "description": "Compress the request into a short, search-engine-style query."},
+    {"id": "source-filter-operators", "label": "Source-filter operators", "description": "Add engine-supported operators (site:, filetype:, after:, before:) to constrain retrieval."},
+    {"id": "recency-constraint", "label": "Recency constraint", "description": "Bound results to a recency window so stale sources are excluded."},
+    {"id": "disambiguation", "label": "Disambiguation preface", "description": "Fold clarifying answers into the prompt to remove ambiguity of scope or definitions."},
+    {"id": "length-target", "label": "Length / verbosity target", "description": "Signal desired output length to match the engine's verbosity sweet spot."},
+    {"id": "negative-constraints", "label": "Negative constraints", "description": "State exclusions — what to avoid or leave out."},
+    {"id": "decomposition", "label": "Task decomposition", "description": "Break a compound request into ordered sub-questions."},
+    {"id": "persona-calibration", "label": "Audience persona calibration", "description": "Tune tone and depth to a stated target audience."}
+  ],
+  "tag_dimensions": {
+    "method": ["qualitative", "quantitative", "mixed"],
+    "analysis_type": ["comparative", "causal", "exploratory", "evaluative", "descriptive"],
+    "retrieval_type": ["factual-lookup", "synthesis", "monitoring", "enumerative"],
+    "subject_matter": ["energy", "technology", "finance", "health", "policy", "science", "business", "general", "other"],
+    "engine": ["chatgpt", "gemini", "claude", "perplexity"],
+    "mode": ["deep-research", "chat"]
+  }
+}

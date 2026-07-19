@@ -7,4 +7,4 @@ grow this into the full intake -> IR -> per-engine rewrite -> memo -> knowledge
 graph pipeline described in the PRD.
 """
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"

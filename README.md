@@ -10,15 +10,15 @@ rewrites.
 > Build sequence: `../Bloom_playground/docs/scratchpad-build-sequence-research-prompt-forge.md`
 > Graduation criteria: `../Bloom_playground/docs/poc-to-v1-graduation-criteria.md`
 
-## Status: M1 — rewrite fan-out to 4 engines
+## Status: M2 — memos + local save + taxonomy.v1
 
-One general prompt → four engine-tuned variants, each with a change summary. Mode is hardcoded to `deep-research` (auto-detection lands in M3).
+One general prompt → four engine-tuned variants, each with an explanation memo carrying **knowledge-graph frontmatter** (tactics + tags), saved locally with dedupe. Mode is hardcoded to `deep-research` (auto-detection lands in M3).
 
 | Milestone | State |
 |-----------|-------|
 | **M0** Scaffold walking skeleton | ✅ done |
 | **M1** Rewrite fan-out to 4 engines | ✅ done |
-| M2 Memos + local save + taxonomy.v1 | ⬜ |
+| **M2** Memos + local save + taxonomy.v1 | ✅ done |
 | M3 Mode auto-detector (hybrid) | ⬜ |
 | M4 Knowledge graph + validator | ⬜ |
 | M5 Private repo push (gh) | ⬜ |
@@ -62,7 +62,22 @@ forge/
   intake.py                  # three-question intake
   ir.py                      # PromptIR + normalize()
   profile.py                 # PlatformProfile loader + validation
-  rewrite.py                 # profile-driven per-structure renderers
+  rewrite.py                 # profile-driven renderers (emit taxonomy tactic IDs)
+  taxonomy.py                # taxonomy loader
+  taxonomy.v1.json           # seed vocabulary: tactics + closed tag dimensions
+  memo.py                    # explanation-memo generation + KG frontmatter
+  store.py                   # local save + dedupe on (prompt hash, engine)
   profiles/*.json            # 4 versioned, hand-authored platform profiles
 tests/                       # golden-fixture + schema tests
+research-memos/              # generated memos (gitignored; pushed only via M5)
+```
+
+## Memo frontmatter (the M4 contract)
+
+Each memo is markdown with JSON-valued frontmatter between `---` fences:
+
+```
+schema_version, taxonomy_version, source_prompt_hash, engine, mode,
+profile_version, tactics: [taxonomy ids], tags: {method, analysis_type,
+retrieval_type, subject_matter}, generated_at
 ```

@@ -1,34 +1,36 @@
 """`python -m forge` / `forge` CLI entry point.
 
-M1 subcommands:
-  rewrite  — normalize a prompt (+ intake answers) and rewrite it for one or all engines
+Subcommands:
+  rewrite  — normalize a prompt (+ intake answers), rewrite for one/all engines,
+             and optionally write explanation memos (--memos DIR)
   intake   — print the three intake questions (the /forge-prompts command uses this)
-
-The `/forge-prompts` plugin command asks the three questions, then shells out to
-`forge rewrite` with the answers as flags.
 """
 
 from __future__ import annotations
 
 import argparse
 import sys
+from pathlib import Path
 
 from forge import __version__
 from forge.intake import IntakeAnswers, QUESTIONS
 from forge.ir import normalize
+from forge.memo import build_memo
 from forge.profile import ENGINES, load_all_profiles, load_profile
 from forge.rewrite import RewriteResult, rewrite
+from forge.store import existing_keys, save_memo
+from forge.taxonomy import Taxonomy, load_taxonomy
 
 
-def _format_result(result: RewriteResult) -> str:
+def _format_result(result: RewriteResult, taxonomy: Taxonomy) -> str:
     lines = [
         f"## {result.engine.upper()}  [mode: {result.mode} · profile {result.profile_version}]",
         "",
         result.prompt,
         "",
-        "Adaptations:",
+        "Tactics applied:",
     ]
-    lines += [f"  - {a}" for a in result.adaptations]
+    lines += [f"  - {taxonomy.label(t)} ({t})" for t in result.tactics]
     return "\n".join(lines)
 
 
@@ -44,13 +46,25 @@ def _cmd_rewrite(args: argparse.Namespace) -> int:
         print(f"error: {exc}", file=sys.stderr)
         return 2
 
+    taxonomy = load_taxonomy()
+
     if args.engine == "all":
         profiles = load_all_profiles()
         results = [rewrite(ir, profiles[engine]) for engine in ENGINES]
     else:
         results = [rewrite(ir, load_profile(args.engine))]
 
-    print("\n\n".join(_format_result(r) for r in results))
+    print("\n\n".join(_format_result(r, taxonomy) for r in results))
+
+    if args.memos:
+        directory = Path(args.memos)
+        keys = existing_keys(directory)
+        print("\n\nMemos:")
+        for result in results:
+            memo = build_memo(args.prompt, ir, result, taxonomy)
+            path, status = save_memo(memo, directory, keys)
+            print(f"  [{status}] {path}")
+
     return 0
 
 
@@ -80,6 +94,12 @@ def build_parser() -> argparse.ArgumentParser:
         "--depth", type=int, default=2, choices=[1, 2, 3], help="Intake Q2: reasoning layers (default 2)."
     )
     rewrite_p.add_argument("--clarify", default="", help="Intake Q3: free-text disambiguation.")
+    rewrite_p.add_argument(
+        "--memos",
+        default="",
+        metavar="DIR",
+        help="Write an explanation memo per rewrite to DIR (e.g. research-memos).",
+    )
     rewrite_p.set_defaults(func=_cmd_rewrite)
 
     intake_p = sub.add_parser("intake", help="Print the three intake questions.")

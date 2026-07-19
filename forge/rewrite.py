@@ -2,13 +2,14 @@
 
 `rewrite(ir, profile)` dispatches on the profile's `structure` to a renderer
 that assembles an engine-tuned prompt from the IR. Each renderer returns the
-rewritten prompt plus the list of adaptations it applied (which becomes the
-on-screen change summary now, and feeds the M2 explanation memo later).
+rewritten prompt plus the taxonomy **tactic IDs** it applied. Emitting IDs (not
+free-text prose) keeps every rewrite graph-ready and avoids the label drift the
+taxonomy decision (scratchpad D-08) was designed to prevent — the human-readable
+rationale is looked up from the taxonomy at display / memo time.
 
-M1 is deterministic template assembly — "the profile supplies guardrails"
-(PRD). Model-driven phrasing polish ("the model fills phrasing") is a later
-refinement; keeping M1 deterministic preserves the golden-fixture test gate.
-Mode is hardcoded to the profile's `default_mode` until M3.
+M1 is deterministic template assembly — "the profile supplies guardrails" (PRD).
+Model-driven phrasing polish is a later refinement. Mode is hardcoded to the
+profile's `default_mode` until M3.
 """
 
 from __future__ import annotations
@@ -27,7 +28,7 @@ class RewriteResult:
     engine: str
     mode: str
     prompt: str
-    adaptations: list[str]
+    tactics: list[str]  # taxonomy tactic IDs applied
     profile_version: str
 
 
@@ -54,12 +55,8 @@ def _render_role_framed(ir: PromptIR, profile: PlatformProfile) -> tuple[str, li
     ]
     lines += [f"- {c}" for c in ir.constraints]
     lines += ["", "Deliverable: a structured report with clear sections, key findings, and inline citations."]
-    adaptations = [
-        "Framed with an explicit expert role (ChatGPT responds to role priming)",
-        "Converted requirements into a numbered constraint block",
-        "Requested a structured, citation-bearing deliverable",
-    ]
-    return "\n".join(lines), adaptations
+    tactics = ["role-framing", "explicit-constraints", "structured-output", "source-preference", "citation-demand"]
+    return "\n".join(lines), tactics
 
 
 def _render_research_plan(ir: PromptIR, profile: PlatformProfile) -> tuple[str, list[str]]:
@@ -78,12 +75,8 @@ def _render_research_plan(ir: PromptIR, profile: PlatformProfile) -> tuple[str, 
     ]
     lines += [f"- {c}" for c in ir.constraints]
     lines += ["", "Output: a comprehensive, well-organized synthesis with citations."]
-    adaptations = [
-        "Prefaced with an approvable research-plan step (Gemini Deep Research surfaces a plan)",
-        "Emphasized breadth across perspectives and source types",
-        "Kept recency and depth explicit for the plan to honor",
-    ]
-    return "\n".join(lines), adaptations
+    tactics = ["research-plan", "breadth-directive", "source-preference", "citation-demand"]
+    return "\n".join(lines), tactics
 
 
 def _render_xml_sections(ir: PromptIR, profile: PlatformProfile) -> tuple[str, list[str]]:
@@ -107,12 +100,8 @@ def _render_xml_sections(ir: PromptIR, profile: PlatformProfile) -> tuple[str, l
         "answer. Flag uncertainty explicitly rather than guessing.",
         "</instructions>",
     ]
-    adaptations = [
-        "Structured with XML-style tags (Claude parses delimited sections reliably)",
-        "Added an explicit step-by-step reasoning + faithfulness instruction",
-        "Requested explicit uncertainty flagging",
-    ]
-    return "\n".join(parts), adaptations
+    tactics = ["xml-structure", "reasoning-depth", "uncertainty-flagging", "source-preference", "citation-demand"]
+    return "\n".join(parts), tactics
 
 
 def _render_concise_query(ir: PromptIR, profile: PlatformProfile) -> tuple[str, list[str]]:
@@ -125,12 +114,8 @@ def _render_concise_query(ir: PromptIR, profile: PlatformProfile) -> tuple[str, 
         tail.append(f"recency {ir.recency_window}")
     tail.append("Cite sources")
     text = f"{ir.intent.rstrip('.')}. " + ". ".join(tail) + "."
-    adaptations = [
-        "Compressed to a concise, keyword-forward query (Perplexity favors search-style phrasing)",
-        "Appended source-preference and recency operators",
-        "Requested inline citations",
-    ]
-    return text, adaptations
+    tactics = ["concise-query", "source-filter-operators", "source-preference", "citation-demand"]
+    return text, tactics
 
 
 _RENDERERS = {
@@ -145,11 +130,18 @@ def rewrite(ir: PromptIR, profile: PlatformProfile) -> RewriteResult:
     renderer = _RENDERERS.get(profile.structure)
     if renderer is None:
         raise ValueError(f"no renderer for structure: {profile.structure!r}")
-    text, adaptations = renderer(ir, profile)
+    text, tactics = renderer(ir, profile)
+
+    # Conditional tactics that depend on the IR content, applied uniformly.
+    if ir.recency_window and "recency-constraint" not in tactics:
+        tactics = [*tactics, "recency-constraint"]
+    if ir.constraints and "disambiguation" not in tactics:
+        tactics = [*tactics, "disambiguation"]
+
     return RewriteResult(
         engine=profile.engine,
         mode=profile.default_mode,
         prompt=text,
-        adaptations=adaptations,
+        tactics=tactics,
         profile_version=profile.version,
     )

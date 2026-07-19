@@ -20,7 +20,7 @@ def test_each_engine_produces_nonempty_tuned_prompt():
     for result in _results().values():
         assert result.prompt.strip()
         assert result.mode == "deep-research"
-        assert result.adaptations
+        assert result.tactics
 
 
 def test_engine_specific_markers():
