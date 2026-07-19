@@ -13,14 +13,16 @@ import sys
 from pathlib import Path
 
 from forge import __version__
+from forge.graph import ingest_directory, load_graph, save_graph, seed_graph
 from forge.intake import IntakeAnswers, QUESTIONS
 from forge.ir import normalize
-from forge.memo import build_memo
+from forge.memo import build_memo, derive_tags
 from forge.mode import ModeDecision, detect_mode
 from forge.profile import ENGINES, load_all_profiles, load_profile
 from forge.rewrite import RewriteResult, rewrite
 from forge.store import existing_keys, save_memo
 from forge.taxonomy import Taxonomy, load_taxonomy
+from forge.validate import validate
 
 
 def _format_result(result: RewriteResult, taxonomy: Taxonomy) -> str:
@@ -73,6 +75,25 @@ def _cmd_rewrite(args: argparse.Namespace) -> int:
             path, status = save_memo(memo, directory, keys)
             print(f"  [{status}] {path}")
 
+    if args.graph:
+        graph_path = Path(args.graph)
+        graph = load_graph(graph_path) if graph_path.exists() else seed_graph(taxonomy)
+        if args.memos:
+            ingested = ingest_directory(graph, Path(args.memos))
+            print(f"\nGraph: ingested {ingested} new memo(s)")
+        base_tags = derive_tags(ir)
+        print("\nValidation (advisory, never blocking):")
+        any_flags = False
+        for result in results:
+            tags = {**base_tags, "engine": result.engine, "mode": result.mode}
+            for flag in validate(result.tactics, tags, graph):
+                any_flags = True
+                print(f"  [{result.engine}] {flag.message}")
+        if not any_flags:
+            print("  no advisory flags")
+        save_graph(graph, graph_path)
+        print(f"Graph saved: {graph_path}")
+
     return 0
 
 
@@ -113,6 +134,13 @@ def build_parser() -> argparse.ArgumentParser:
         default="",
         metavar="DIR",
         help="Write an explanation memo per rewrite to DIR (e.g. research-memos).",
+    )
+    rewrite_p.add_argument(
+        "--graph",
+        default="",
+        metavar="PATH",
+        help="Knowledge-graph JSON file: ingest memos (with --memos), validate "
+        "rewrites (advisory), and save. Seeded from the taxonomy if missing.",
     )
     rewrite_p.set_defaults(func=_cmd_rewrite)
 

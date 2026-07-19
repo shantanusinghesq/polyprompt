@@ -1,7 +1,7 @@
 {
   "name": "research-prompt-forge",
   "description": "Rewrite one general research prompt into per-engine optimized prompts (ChatGPT, Gemini, Claude, Perplexity) with explanation memos that accumulate into a knowledge graph.",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "author": {
     "name": "haremantra"
   }
