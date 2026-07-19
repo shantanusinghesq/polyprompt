@@ -1,0 +1,11 @@
+{
+  "engine": "chatgpt",
+  "version": "2026.07.0",
+  "default_mode": "deep-research",
+  "structure": "role-framed",
+  "length": "verbose",
+  "source_filter_syntax": ["explicit source-type requests", "\"cite sources\""],
+  "strengths": ["role priming", "structured multi-section output", "explicit constraint following"],
+  "directives": ["Assign an expert role", "Enumerate constraints", "Request structured, cited output"],
+  "notes": "GPT deep-research responds well to explicit role framing and numbered constraints. Hand-authored M1; refresh via the monthly checkup (M7)."
+}

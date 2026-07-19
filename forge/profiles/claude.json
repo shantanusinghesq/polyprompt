@@ -1,0 +1,11 @@
+{
+  "engine": "claude",
+  "version": "2026.07.0",
+  "default_mode": "deep-research",
+  "structure": "xml-sections",
+  "length": "moderate",
+  "source_filter_syntax": ["explicit source constraints inside <constraints>"],
+  "strengths": ["delimited/XML section parsing", "faithful step-by-step reasoning", "uncertainty flagging"],
+  "directives": ["Use XML-style tags", "Instruct step-by-step reasoning", "Request explicit uncertainty flags"],
+  "notes": "Claude parses delimited sections reliably and rewards explicit reasoning + faithfulness instructions. Hand-authored M1."
+}

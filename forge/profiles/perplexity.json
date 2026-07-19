@@ -1,0 +1,11 @@
+{
+  "engine": "perplexity",
+  "version": "2026.07.0",
+  "default_mode": "deep-research",
+  "structure": "concise-query",
+  "length": "concise",
+  "source_filter_syntax": ["site:", "filetype:", "after:", "before:"],
+  "strengths": ["concise keyword queries", "source/recency operators", "fast search-grounded answers"],
+  "directives": ["Compress to keywords", "Add source/recency operators", "Request citations"],
+  "notes": "Perplexity favors short, search-engine-style queries with operators over verbose role prompts. Hand-authored M1."
+}

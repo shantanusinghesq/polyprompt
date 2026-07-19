@@ -1,6 +1,6 @@
 [project]
 name = "research-prompt-forge"
-version = "0.0.1"
+version = "0.1.0"
 description = "Rewrite one general research prompt into per-engine optimized prompts with explanation memos."
 requires-python = ">=3.10"
 dependencies = []

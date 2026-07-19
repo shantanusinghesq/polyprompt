@@ -10,14 +10,14 @@ rewrites.
 > Build sequence: `../Bloom_playground/docs/scratchpad-build-sequence-research-prompt-forge.md`
 > Graduation criteria: `../Bloom_playground/docs/poc-to-v1-graduation-criteria.md`
 
-## Status: M0 — walking skeleton
+## Status: M1 — rewrite fan-out to 4 engines
 
-Proves the plugin plumbing end to end. **Perplexity only, hardcoded transform.**
+One general prompt → four engine-tuned variants, each with a change summary. Mode is hardcoded to `deep-research` (auto-detection lands in M3).
 
 | Milestone | State |
 |-----------|-------|
-| **M0** Scaffold walking skeleton | ✅ in progress |
-| M1 Rewrite fan-out to 4 engines | ⬜ |
+| **M0** Scaffold walking skeleton | ✅ done |
+| **M1** Rewrite fan-out to 4 engines | ✅ done |
 | M2 Memos + local save + taxonomy.v1 | ⬜ |
 | M3 Mode auto-detector (hybrid) | ⬜ |
 | M4 Knowledge graph + validator | ⬜ |
@@ -28,13 +28,22 @@ Proves the plugin plumbing end to end. **Perplexity only, hardcoded transform.**
 ## Usage
 
 ```bash
-python -m forge rewrite --engine perplexity "Compare 15-year TCO of heat pumps vs gas furnaces, cite 2024+ sources"
+# all four engines, with the three-question intake answers as flags
+python -m forge rewrite --engine all \
+  --time-period "2024+" --depth 3 \
+  "Compare 15-year TCO of heat pumps vs gas furnaces for a cold-climate US home"
+
+# a single engine
+python -m forge rewrite --engine claude "..."
+
+# print the three intake questions
+python -m forge intake
 ```
 
-As a Claude Code plugin, invoke:
+As a Claude Code plugin, invoke `/forge-prompts` — it runs the three-question intake, then fans out to all four engines:
 
 ```
-/forge-prompts Compare 15-year TCO of heat pumps vs gas furnaces, cite 2024+ sources
+/forge-prompts Compare 15-year TCO of heat pumps vs gas furnaces for a cold-climate US home
 ```
 
 ## Development
@@ -47,10 +56,13 @@ python -m pytest          # run the test suite (M0 exit test lives in tests/)
 
 ```
 .claude-plugin/plugin.json   # Claude Code plugin manifest
-commands/forge-prompts.md    # /forge-prompts slash command
+commands/forge-prompts.md    # /forge-prompts slash command (runs intake, fans out)
 forge/
-  __main__.py                # `forge` CLI
-  ir.py                      # PromptIR (M0 stub; M1 fills it in)
-  engines/perplexity.py      # M0 hardcoded transform
+  __main__.py                # `forge` CLI (rewrite, intake)
+  intake.py                  # three-question intake
+  ir.py                      # PromptIR + normalize()
+  profile.py                 # PlatformProfile loader + validation
+  rewrite.py                 # profile-driven per-structure renderers
+  profiles/*.json            # 4 versioned, hand-authored platform profiles
 tests/                       # golden-fixture + schema tests
 ```
