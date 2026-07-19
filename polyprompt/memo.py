@@ -18,9 +18,9 @@ import re
 from dataclasses import dataclass
 from datetime import datetime
 
-from forge.ir import PromptIR
-from forge.rewrite import RewriteResult
-from forge.taxonomy import Taxonomy
+from polyprompt.ir import PromptIR
+from polyprompt.rewrite import RewriteResult
+from polyprompt.taxonomy import Taxonomy
 
 SCHEMA_VERSION = "1"
 

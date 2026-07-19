@@ -1,10 +1,10 @@
 """M2 — taxonomy loads, and every tactic the renderers can emit exists in it."""
 
-from forge.intake import IntakeAnswers
-from forge.ir import normalize
-from forge.profile import ENGINES, load_all_profiles
-from forge.rewrite import rewrite
-from forge.taxonomy import load_taxonomy
+from polyprompt.intake import IntakeAnswers
+from polyprompt.ir import normalize
+from polyprompt.profile import ENGINES, load_all_profiles
+from polyprompt.rewrite import rewrite
+from polyprompt.taxonomy import load_taxonomy
 
 
 def test_taxonomy_loads():

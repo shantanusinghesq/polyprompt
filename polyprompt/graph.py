@@ -22,8 +22,8 @@ import math
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from forge.memo import parse_frontmatter
-from forge.taxonomy import Taxonomy
+from polyprompt.memo import parse_frontmatter
+from polyprompt.taxonomy import Taxonomy
 
 K_MIN = 5  # minimum label support before an edge can promote
 THETA_HIGH = 0.7  # Wilson lower bound needed to promote to required

@@ -17,9 +17,9 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 
-from forge.ir import PromptIR
-from forge.mode import ModeDecision
-from forge.profile import PlatformProfile
+from polyprompt.ir import PromptIR
+from polyprompt.mode import ModeDecision
+from polyprompt.profile import PlatformProfile
 
 _YEAR_RE = re.compile(r"(20\d{2})")
 

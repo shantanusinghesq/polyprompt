@@ -8,7 +8,7 @@ Keep the four platform profiles current against vendor primary documentation (PR
 **Step 1 — staleness report:**
 
 ```bash
-python -m forge checkup
+python -m polyprompt checkup
 ```
 
 This lists each engine's profile version, when it was last checked (STALE after 30 days), and the vendor doc URLs to review.
@@ -18,7 +18,7 @@ This lists each engine's profile version, when it was last checked (STALE after 
 **Step 3 — propose (never silently apply).** For each real change, build a version-stamped proposal and show the user the diff:
 
 ```bash
-python -m forge checkup --engine <engine> \
+python -m polyprompt checkup --engine <engine> \
   --set field='<json value>' [--set field2='<json>'...]
 ```
 
@@ -26,4 +26,4 @@ The output shows `old_version -> new_version` (stamped `YYYY.MM.N`) and every fi
 
 **Step 4 — apply only with user approval:** re-run the same command with `--apply`. This writes the profile with the new version and today's `last_checked`.
 
-If the docs show no changes for an engine, say so — an explicit "no change, profiles current" is a valid checkup outcome (do not invent diffs). Note: profile *structure* updates are this checkup's job; label ingest is governed separately by the sufficiency gate (`forge sufficiency`).
+If the docs show no changes for an engine, say so — an explicit "no change, profiles current" is a valid checkup outcome (do not invent diffs). Note: profile *structure* updates are this checkup's job; label ingest is governed separately by the sufficiency gate (`polyprompt sufficiency`).

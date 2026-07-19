@@ -1,9 +1,9 @@
-"""`python -m forge` / `forge` CLI entry point.
+"""`python -m polyprompt` / `polyprompt` CLI entry point.
 
 Subcommands:
   rewrite  — normalize a prompt (+ intake answers), rewrite for one/all engines,
              and optionally write explanation memos (--memos DIR)
-  intake   — print the three intake questions (the /forge-prompts command uses this)
+  intake   — print the three intake questions (the /polyprompt-prompts command uses this)
 """
 
 from __future__ import annotations
@@ -13,21 +13,21 @@ import json
 import sys
 from pathlib import Path
 
-from forge import __version__
-from forge.checkup import STALE_DAYS, apply_update, checkup_status, propose_update
-from forge.graph import ingest_directory, load_graph, save_graph, seed_graph
-from forge.intake import IntakeAnswers, QUESTIONS
-from forge.ir import normalize
-from forge.memo import build_memo, derive_tags
-from forge.mode import ModeDecision, detect_mode
-from forge.profile import ENGINES, load_all_profiles, load_profile
-from forge.push import DEFAULT_REPO, push_corpus
-from forge.review import Review, apply_review, load_reviews, mode_accuracy, save_review
-from forge.rewrite import RewriteResult, rewrite
-from forge.store import existing_keys, save_memo
-from forge.sufficiency import assess
-from forge.taxonomy import Taxonomy, load_taxonomy
-from forge.validate import validate
+from polyprompt import __version__
+from polyprompt.checkup import STALE_DAYS, apply_update, checkup_status, propose_update
+from polyprompt.graph import ingest_directory, load_graph, save_graph, seed_graph
+from polyprompt.intake import IntakeAnswers, QUESTIONS
+from polyprompt.ir import normalize
+from polyprompt.memo import build_memo, derive_tags
+from polyprompt.mode import ModeDecision, detect_mode
+from polyprompt.profile import ENGINES, load_all_profiles, load_profile
+from polyprompt.push import DEFAULT_REPO, push_corpus
+from polyprompt.review import Review, apply_review, load_reviews, mode_accuracy, save_review
+from polyprompt.rewrite import RewriteResult, rewrite
+from polyprompt.store import existing_keys, save_memo
+from polyprompt.sufficiency import assess
+from polyprompt.taxonomy import Taxonomy, load_taxonomy
+from polyprompt.validate import validate
 
 
 def _format_result(result: RewriteResult, taxonomy: Taxonomy) -> str:
@@ -110,7 +110,7 @@ def _cmd_intake(_args: argparse.Namespace) -> int:
 def _cmd_review(args: argparse.Namespace) -> int:
     from datetime import datetime
 
-    from forge.memo import parse_frontmatter
+    from polyprompt.memo import parse_frontmatter
 
     memo_path = Path(args.memo)
     try:
@@ -172,7 +172,7 @@ def _cmd_checkup(args: argparse.Namespace) -> int:
             for url in s.doc_sources:
                 print(f"          doc: {url}")
         print("\nReview the docs above, then propose:"
-              "\n  forge checkup --engine <e> --set field=<json> [--apply]")
+              "\n  polyprompt checkup --engine <e> --set field=<json> [--apply]")
         return 0
 
     updates = {}
@@ -228,7 +228,7 @@ def _cmd_sufficiency(args: argparse.Namespace) -> int:
               "diversity floor (advisory)")
 
     if report.sufficient:
-        print("sufficient: run ingest (forge rewrite --graph / graph ingest)")
+        print("sufficient: run ingest (polyprompt rewrite --graph / graph ingest)")
         return 0
     print("insufficient: not enough new evidence to move the graph")
     return 1
@@ -240,7 +240,7 @@ def _cmd_push(args: argparse.Namespace) -> int:
 
     stamp = datetime.now().strftime("%Y-%m-%d %H:%M")
     message = args.message or f"corpus: memo update ({stamp})"
-    # Let push_corpus build the runner internally (via forge.push.make_runner)
+    # Let push_corpus build the runner internally (via polyprompt.push.make_runner)
     # so the test seam that patches make_runner takes effect.
     result = push_corpus(
         directory,
@@ -265,10 +265,10 @@ def _cmd_push(args: argparse.Namespace) -> int:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        prog="forge",
+        prog="polyprompt",
         description="Research Prompt Forge — rewrite a general research prompt per engine.",
     )
-    parser.add_argument("--version", action="version", version=f"forge {__version__}")
+    parser.add_argument("--version", action="version", version=f"polyprompt {__version__}")
     sub = parser.add_subparsers(dest="command", required=True)
 
     rewrite_p = sub.add_parser("rewrite", help="Rewrite a general prompt for one or all engines.")

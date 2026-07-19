@@ -5,7 +5,7 @@ M0 had no intake. M1 collects three specificity inputs before rewriting:
   2. depth of issue-spotting / reasoning layers (1-3)
   3. clarifying questions if the request is still ambiguous (free text)
 
-The `/forge-prompts` command asks these conversationally; the CLI accepts the
+The `/polyprompt-prompts` command asks these conversationally; the CLI accepts the
 answers as flags. Mode auto-detection is deferred to M3 — M1 hardcodes
 deep-research.
 """

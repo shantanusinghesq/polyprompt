@@ -24,8 +24,8 @@ import copy
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from forge.graph import K_MIN, EdgeKey, Graph
-from forge.memo import parse_frontmatter
+from polyprompt.graph import K_MIN, EdgeKey, Graph
+from polyprompt.memo import parse_frontmatter
 
 MIN_PENDING_MEMOS = 3  # hysteresis: this many new memos is worth an ingest anyway
 DIVERSITY_MIN = 3  # distinct prompt hashes required before a promotion counts

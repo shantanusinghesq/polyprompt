@@ -1,11 +1,11 @@
-"""M5 — `forge push` CLI wiring. The runner is patched so no network is hit."""
+"""M5 — `polyprompt push` CLI wiring. The runner is patched so no network is hit."""
 
-from forge.__main__ import main
+from polyprompt.__main__ import main
 from tests.test_m5_push import FakeRunner, corpus_with_memo, fresh_repo_runner
 
 
 def patch_runner(monkeypatch, runner):
-    monkeypatch.setattr("forge.push.make_runner", lambda: runner)
+    monkeypatch.setattr("polyprompt.push.make_runner", lambda: runner)
 
 
 class TestPushCli:
@@ -32,7 +32,7 @@ class TestPushCli:
         patch_runner(monkeypatch, runner)
         rc = main(["push", "--dir", str(corpus)])
         assert rc == 0
-        assert "research-prompt-forge-corpus" in runner.call("gh", "repo", "view")
+        assert "polyprompt-corpus" in runner.call("gh", "repo", "view")
 
     def test_empty_corpus_exits_zero_noop(self, tmp_path, monkeypatch, capsys):
         corpus = tmp_path / "research-memos"

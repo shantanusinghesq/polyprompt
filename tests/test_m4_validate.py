@@ -1,9 +1,9 @@
 """M4 — advisory validation: expected tactics vs applied, never blocking."""
 
-from forge.__main__ import main
-from forge.graph import Graph, load_graph, save_graph, seed_graph
-from forge.taxonomy import load_taxonomy
-from forge.validate import validate
+from polyprompt.__main__ import main
+from polyprompt.graph import Graph, load_graph, save_graph, seed_graph
+from polyprompt.taxonomy import load_taxonomy
+from polyprompt.validate import validate
 
 
 def promoted_graph(tactic="concise-query", dimension="engine", value="chatgpt"):

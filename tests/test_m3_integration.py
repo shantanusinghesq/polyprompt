@@ -2,14 +2,14 @@
 
 from datetime import datetime
 
-from forge.__main__ import main
-from forge.intake import IntakeAnswers
-from forge.ir import normalize
-from forge.memo import build_memo
-from forge.mode import detect_mode
-from forge.profile import load_profile
-from forge.rewrite import rewrite
-from forge.taxonomy import load_taxonomy
+from polyprompt.__main__ import main
+from polyprompt.intake import IntakeAnswers
+from polyprompt.ir import normalize
+from polyprompt.memo import build_memo
+from polyprompt.mode import detect_mode
+from polyprompt.profile import load_profile
+from polyprompt.rewrite import rewrite
+from polyprompt.taxonomy import load_taxonomy
 
 
 def test_rewrite_uses_detected_mode():

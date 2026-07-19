@@ -1,6 +1,6 @@
 # Research Prompt Forge
 
-[![CI](https://github.com/haremantra/research-prompt-forge/actions/workflows/ci.yml/badge.svg)](https://github.com/haremantra/research-prompt-forge/actions/workflows/ci.yml)
+[![CI](https://github.com/haremantra/polyprompt/actions/workflows/ci.yml/badge.svg)](https://github.com/haremantra/polyprompt/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 A CLI (and Claude Code plugin) that rewrites **one** general internet-research
@@ -40,10 +40,10 @@ stdlib (deliberately: see `docs/EXPLAINER.md` §3.2 on why the deterministic
 core stays dependency-free).
 
 ```bash
-git clone https://github.com/haremantra/research-prompt-forge.git
-cd research-prompt-forge
-pip install -e .          # installs the `forge` CLI (editable)
-forge --version
+git clone https://github.com/haremantra/polyprompt.git
+cd polyprompt
+pip install -e .          # installs the `polyprompt` CLI (editable)
+polyprompt --version
 ```
 
 That's the whole install, everywhere — it's a plain Python package, so the
@@ -57,32 +57,32 @@ each tool *uses* the repo once it's cloned.
 paste the three commands above into the agent's shell/bash tool and it runs
 exactly like it would for you locally. These tools can `git clone` and `pip
 install` on their own if you ask them to ("clone
-`https://github.com/haremantra/research-prompt-forge` and set it up").
+`https://github.com/haremantra/polyprompt` and set it up").
 
-**Claude Code (as a plugin, for the `/forge-*` slash commands):** the repo
+**Claude Code (as a plugin, for the `/polyprompt-*` slash commands):** the repo
 ships a plugin manifest (`.claude-plugin/plugin.json`) and slash commands
 (`commands/*.md`). After cloning, either open Claude Code with this directory
 as your project root (commands are picked up automatically), or add it as a
 plugin from a local path:
 ```
-/plugin marketplace add /path/to/research-prompt-forge
-/plugin install research-prompt-forge
+/plugin marketplace add /path/to/polyprompt
+/plugin install polyprompt
 ```
-Either way you get `/forge-prompts`, `/forge-review`, `/forge-push`, and
-`/forge-checkup` in addition to the bare `forge` CLI.
+Either way you get `/polyprompt-prompts`, `/polyprompt-review`, `/polyprompt-push`, and
+`/polyprompt-checkup` in addition to the bare `polyprompt` CLI.
 
 **Claude Desktop:** Desktop chat alone has no shell or `git` access — it can't
 clone a repo by itself. Clone it in a regular terminal first (`git clone` +
-`pip install -e .` above), then either run `forge` yourself and paste the
+`pip install -e .` above), then either run `polyprompt` yourself and paste the
 output into Desktop, or, if you have an MCP server with filesystem/shell
 access configured, point it at the cloned directory so Desktop can drive it
 directly.
 
 **Perplexity:** not applicable here — Perplexity has no local shell or repo
 access, and in this project it isn't a host for the tool at all. It's one of
-the four **target engines** `forge` rewrites prompts *for* (see `--engine
+the four **target engines** `polyprompt` rewrites prompts *for* (see `--engine
 perplexity` below). The way you'd actually use this tool with Perplexity is:
-run `forge` anywhere else, then paste the Perplexity-tuned rewrite into
+run `polyprompt` anywhere else, then paste the Perplexity-tuned rewrite into
 perplexity.ai yourself.
 
 ## Usage
@@ -91,21 +91,21 @@ perplexity.ai yourself.
 
 ```bash
 # all four engines, with the three-question intake answers as flags
-forge rewrite --engine all \
+polyprompt rewrite --engine all \
   --time-period "2024+" --depth 3 \
   "Compare 15-year TCO of heat pumps vs gas furnaces for a cold-climate US home"
 
 # a single engine
-forge rewrite --engine claude "..."
+polyprompt rewrite --engine claude "..."
 
 # print the three intake questions
-forge intake
+polyprompt intake
 ```
 
-As a Claude Code plugin, invoke `/forge-prompts` — same thing, conversational intake:
+As a Claude Code plugin, invoke `/polyprompt-prompts` — same thing, conversational intake:
 
 ```
-/forge-prompts Compare 15-year TCO of heat pumps vs gas furnaces for a cold-climate US home
+/polyprompt-prompts Compare 15-year TCO of heat pumps vs gas furnaces for a cold-climate US home
 ```
 
 **Later — optional, once you have a memo corpus.** None of these are needed
@@ -113,13 +113,13 @@ for the core loop above; they exist for building up and maintaining the
 knowledge graph over time (see `docs/EXPLAINER.md` §3.6–3.11):
 
 ```bash
-forge sufficiency          # read-only: is there enough new evidence to update the graph?
-forge review <memo> --reviewer "..." --intent 5 --quality 5 --explain "..." --mode-correct
-forge push --repo my-corpus    # explicit, opt-in: commit memos to a private GitHub repo
-forge checkup               # monthly: are the 4 platform profiles still accurate?
+polyprompt sufficiency          # read-only: is there enough new evidence to update the graph?
+polyprompt review <memo> --reviewer "..." --intent 5 --quality 5 --explain "..." --mode-correct
+polyprompt push --repo my-corpus    # explicit, opt-in: commit memos to a private GitHub repo
+polyprompt checkup               # monthly: are the 4 platform profiles still accurate?
 ```
 
-Corresponding slash commands: `/forge-review`, `/forge-push`, `/forge-checkup`.
+Corresponding slash commands: `/polyprompt-review`, `/polyprompt-push`, `/polyprompt-checkup`.
 
 ## Development
 
@@ -133,11 +133,11 @@ python -m pytest          # run the test suite (139 tests)
 ```
 LICENSE                      # MIT
 CONTRIBUTING.md               # TDD workflow, code style, PR conventions
-pyproject.toml               # package metadata; `forge` console-script entry point
+pyproject.toml               # package metadata; `polyprompt` console-script entry point
 .claude-plugin/plugin.json   # Claude Code plugin manifest
-commands/                    # /forge-prompts, /forge-review, /forge-push, /forge-checkup
-forge/
-  __main__.py                # `forge` CLI (rewrite, intake, review, push, sufficiency, checkup)
+commands/                    # /polyprompt-prompts, /polyprompt-review, /polyprompt-push, /polyprompt-checkup
+polyprompt/
+  __main__.py                # `polyprompt` CLI (rewrite, intake, review, push, sufficiency, checkup)
   intake.py                  # three-question intake
   ir.py                      # PromptIR + normalize()
   profile.py                 # PlatformProfile loader + validation
@@ -155,7 +155,7 @@ forge/
   checkup.py                 # staleness report + version-stamped profile diffs
   profiles/*.json            # 4 versioned, hand-authored platform profiles (+ doc_sources, last_checked)
 tests/                       # golden-fixture + schema tests (139 passing)
-research-memos/              # generated memos (gitignored; pushed only via `forge push`)
+research-memos/              # generated memos (gitignored; pushed only via `polyprompt push`)
 docs/EXPLAINER.md            # plain-English, stage-by-stage walkthrough of the whole pipeline
 docs/ARCHITECTURE.md         # scannable reference: invariants, data contracts, known gaps
 ```
@@ -170,4 +170,4 @@ profile_version, tactics: [taxonomy ids], tags: {method, analysis_type,
 retrieval_type, subject_matter}, generated_at
 ```
 
-This is what `forge/graph.py` ingests to build tactic↔tag edges, `forge/validate.py` checks future rewrites against, and `forge/review.py` sidecar files (`<memo>.review.json`) attach ratings to. See `docs/EXPLAINER.md` §3.5–3.9 for how these fit together.
+This is what `polyprompt/graph.py` ingests to build tactic↔tag edges, `polyprompt/validate.py` checks future rewrites against, and `polyprompt/review.py` sidecar files (`<memo>.review.json`) attach ratings to. See `docs/EXPLAINER.md` §3.5–3.9 for how these fit together.

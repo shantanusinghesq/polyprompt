@@ -8,7 +8,7 @@ Rewrite the user's general research prompt into a version optimized for each AI 
 **Step 1 — run the three-question intake.** Ask the user these (skip Q3 if the prompt is already unambiguous):
 
 ```bash
-python -m forge intake
+python -m polyprompt intake
 ```
 
 1. Time period / recency window
@@ -18,7 +18,7 @@ python -m forge intake
 **Step 2 — rewrite for all engines** with the collected answers, saving an explanation memo per rewrite:
 
 ```bash
-python -m forge rewrite --engine all \
+python -m polyprompt rewrite --engine all \
   --time-period "<answer 1>" \
   --depth <answer 2> \
   --clarify "<answer 3>" \

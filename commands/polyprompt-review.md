@@ -14,7 +14,7 @@ Capture an independent review of one explanation memo (PRD FR-7). The reviewer m
 **Run:**
 
 ```bash
-python -m forge review "$ARGUMENTS" \
+python -m polyprompt review "$ARGUMENTS" \
   --reviewer "<name>" \
   --intent <1-5> \
   --quality <1-5> \

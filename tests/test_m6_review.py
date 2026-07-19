@@ -4,8 +4,8 @@ import json
 
 import pytest
 
-from forge.graph import Graph
-from forge.review import (
+from polyprompt.graph import Graph
+from polyprompt.review import (
     Review,
     apply_review,
     load_reviews,

@@ -19,7 +19,7 @@ import json
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
-from forge.graph import Graph
+from polyprompt.graph import Graph
 
 _SIDECAR_SUFFIX = ".review.json"
 

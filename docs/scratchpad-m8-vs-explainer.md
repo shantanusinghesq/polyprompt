@@ -12,7 +12,7 @@
 **Accepted:** Option A now, with C as the standing default going forward — CoVE-01 (below) confirms no M8 was ever specified; inventing scope the PRD/build-sequence never asked for would be exactly the kind of unrequested feature work the project's own conventions warn against. The README is also concretely stale (frozen at M3, 13 modules out of date), which is a real, cheap-to-fix gap — higher value per hour than speculative new code right now.
 
 **Rejected:** Option B
-**Reasoning against B:** `docs/scratchpad-build-sequence-research-prompt-forge.md` and the PRD define exactly M0–M7, all shipped (v0.8.0, 139 tests, `docs/acc/002-2026-07-19-m4-m7-complete.md`). The only unresolved forward work already on record is the **soak period** (real prompts, real reviewer ratings) — a *usage* activity, not a *build* milestone. Manufacturing an M8 to keep building would be solving a code problem where there isn't one.
+**Reasoning against B:** `docs/scratchpad-build-sequence-polyprompt.md` and the PRD define exactly M0–M7, all shipped (v0.8.0, 139 tests, `docs/acc/002-2026-07-19-m4-m7-complete.md`). The only unresolved forward work already on record is the **soak period** (real prompts, real reviewer ratings) — a *usage* activity, not a *build* milestone. Manufacturing an M8 to keep building would be solving a code problem where there isn't one.
 
 **Rejected:** Option C as a hard gate before starting
 **Reasoning against C (as a blocker):** Waiting to see "does the explainer reveal a gap" before starting is unnecessary — the explainer is valuable on its own regardless of whether it turns up gaps; treating it as pure a means to an end undersells it. Accepted as a *sequel* posture instead (explainer now; M8-shaped work only if reading forces one to light up), not as a precondition.
@@ -37,7 +37,7 @@
 **Rejected:** Option C
 **Reasoning against C:** The explicit ask is "humanized... suitable for a vibe coder to expert" — i.e. one continuous ramp, not separate documents the reader has to choose between. Splitting by audience also means two docs go stale independently; this project already has one stale doc (README) from a previous milestone-boundary miss.
 
-**Assumption accepted:** Progressive disclosure (plain language first, mechanism detail later in the same document) can serve both audiences without patronizing the expert or losing the beginner — the same technique the codebase itself already uses in docstrings (e.g. `forge/graph.py`'s module docstring explains Wilson-LB in one sentence before the code defines it).
+**Assumption accepted:** Progressive disclosure (plain language first, mechanism detail later in the same document) can serve both audiences without patronizing the expert or losing the beginner — the same technique the codebase itself already uses in docstrings (e.g. `polyprompt/graph.py`'s module docstring explains Wilson-LB in one sentence before the code defines it).
 **Assumption rejected:** "A vibe coder and an expert need genuinely different documents" — rejected for this artifact; they need different *depths of the same document*, reachable by reading further, not by picking a different file.
 
 ### D-03 — Does the explainer also need to fix the stale README, or is that separate scope?
@@ -78,11 +78,11 @@
 ## CoVE Answers
 
 ### CoVE-01 — does M8 exist anywhere?
-**FINDING:** NO. `grep -n -i "M8"` across `Bloom_playground/docs/scratchpad-build-sequence-research-prompt-forge.md`, `prd/research-prompt-forge.md`, and `poc-to-v1-graduation-criteria.md` returns zero matches. The build sequence table (build-sequence doc, lines 13–24) defines exactly M0 through M7, all of which are shipped per `docs/acc/002-2026-07-19-m4-m7-complete.md`.
+**FINDING:** NO. `grep -n -i "M8"` across `Bloom_playground/docs/scratchpad-build-sequence-polyprompt.md`, `prd/polyprompt.md`, and `poc-to-v1-graduation-criteria.md` returns zero matches. The build sequence table (build-sequence doc, lines 13–24) defines exactly M0 through M7, all of which are shipped per `docs/acc/002-2026-07-19-m4-m7-complete.md`.
 **Impact:** Confirms D-01's Option A/C — there is no spec to build against for "M8"; any such work would be invented scope.
 
 ### CoVE-02 — is the README stale?
-**FINDING:** YES, materially. `README.md:13` still reads "Status: M3 — hybrid mode auto-detector" and the table (lines 17–26) marks M4, M5, M6, M7 as ⬜ (not started) when all four are ✅ done at v0.8.0. The Layout section (lines 55–74) lists only M0–M2 modules and omits `graph.py`, `validate.py`, `push.py`, `review.py`, `sufficiency.py`, `checkup.py` — six of twelve `forge/` modules are undocumented there. The Memo frontmatter section (lines 76–84) is still accurate (unchanged since M2) but incomplete without a graph/review pointer.
+**FINDING:** YES, materially. `README.md:13` still reads "Status: M3 — hybrid mode auto-detector" and the table (lines 17–26) marks M4, M5, M6, M7 as ⬜ (not started) when all four are ✅ done at v0.8.0. The Layout section (lines 55–74) lists only M0–M2 modules and omits `graph.py`, `validate.py`, `push.py`, `review.py`, `sufficiency.py`, `checkup.py` — six of twelve `polyprompt/` modules are undocumented there. The Memo frontmatter section (lines 76–84) is still accurate (unchanged since M2) but incomplete without a graph/review pointer.
 **Impact:** Confirms D-03 — this isn't a hypothetical staleness risk, it's actively wrong and worth fixing in the same pass.
 
 ## Next Actions

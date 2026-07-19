@@ -25,9 +25,9 @@ __main__ (CLI) ─┬─> intake   ─> (leaf)
 ```
 
 Acyclic by construction — no module imports `__main__`, and there is no cycle
-among `forge/*.py`. `intake` → `taxonomy` → `profile` are the only true
+among `polyprompt/*.py`. `intake` → `taxonomy` → `profile` are the only true
 leaves (zero internal deps); everything else composes from there. 1,954 total
-lines across 15 modules (`wc -l forge/*.py`); the largest single file is
+lines across 15 modules (`wc -l polyprompt/*.py`); the largest single file is
 `__main__.py` (386 lines — CLI argument wiring for 6 subcommands, deliberately
 thin: every subcommand delegates to a pure function in its own module within
 a few lines).
@@ -61,7 +61,7 @@ raw prompt + 3 intake answers
 
 ## Core data contracts
 
-### `PromptIR` (`forge/ir.py`)
+### `PromptIR` (`polyprompt/ir.py`)
 | Field | Type | Notes |
 |---|---|---|
 | `intent` | `str` | whitespace-normalized original prompt |
@@ -73,7 +73,7 @@ raw prompt + 3 intake answers
 `normalize()` raises `ValueError` on an empty/whitespace-only prompt; that's
 the only failure mode.
 
-### Memo frontmatter (`forge/memo.py`)
+### Memo frontmatter (`polyprompt/memo.py`)
 JSON-valued lines between `---` fences (not YAML — chosen for zero
 dependencies and lossless round-trip; see `render_frontmatter`/
 `parse_frontmatter`).
@@ -84,11 +84,11 @@ mode_source, mode_reason, profile_version, tactics: [taxonomy ids],
 tags: {method, analysis_type, retrieval_type, subject_matter}, generated_at
 ```
 
-`SCHEMA_VERSION = "1"` (`forge/memo.py:25`). No compatibility policy is
+`SCHEMA_VERSION = "1"` (`polyprompt/memo.py:25`). No compatibility policy is
 defined yet — treat any bump as breaking until one is written (tracked as an
 open gap, see below).
 
-### Graph edge (`forge/graph.py`)
+### Graph edge (`polyprompt/graph.py`)
 | Field | Type | Meaning |
 |---|---|---|
 | `tactic, dimension, value` | `str` | composite key: e.g. `("role-framing", "engine", "chatgpt")` |
@@ -122,7 +122,7 @@ These are stated once here; the narrative doc explains *why* each one exists.
 3. **Seed edges cannot self-promote.** `provenance="seed"` edges are created
    with `pos=neg=0` and stay that way unless real labels land on the same
    key — `Edge.promoted` requires `support >= K_MIN=5`, so a seed alone can
-   never satisfy it (`forge/graph.py`, `Edge.promoted`, ~line 78).
+   never satisfy it (`polyprompt/graph.py`, `Edge.promoted`, ~line 78).
 4. **Archive, never delete.** `Graph.archive_contra()` flips `status` to
    `"archived"`; it never removes a key from `edges`. `required_tactics()`
    filters `status == "active"` — an archived edge is excluded from
@@ -130,14 +130,14 @@ These are stated once here; the narrative doc explains *why* each one exists.
 5. **`sufficiency.assess()` is read-only.** It operates on `copy.deepcopy(graph)`
    and never mutates the caller's graph or touches disk. Verified by
    `tests/test_sufficiency.py::TestPromotionSimulation::test_assess_is_read_only`.
-6. **The only code path that leaves the machine is `forge/push.py`, and only
+6. **The only code path that leaves the machine is `polyprompt/push.py`, and only
    on explicit invocation.** No other module performs network I/O. `push`
    itself never deletes local memos — failure states (`"local"`, `"failed"`)
-   always retain the local copy (`forge/push.py`, `PushResult.report`).
+   always retain the local copy (`polyprompt/push.py`, `PushResult.report`).
 7. **Reviewer identity is part of the dedupe key.** `graph.reviewed` keys on
    `(source_prompt_hash, engine, reviewer)` — the same person re-reviewing
    the same memo is a no-op; a second, distinct reviewer's opinion counts
-   (`forge/review.py`, `apply_review()`).
+   (`polyprompt/review.py`, `apply_review()`).
 
 ## Complexity / scale notes
 
@@ -147,9 +147,9 @@ These are stated once here; the narrative doc explains *why* each one exists.
   evaluating this for a large shared corpus, this is the first thing to
   profile.
 - **Graph persistence is a single flat JSON file**, loaded and rewritten in
-  full on every mutation (`save_graph`/`load_graph` in `forge/graph.py`).
+  full on every mutation (`save_graph`/`load_graph` in `polyprompt/graph.py`).
   This was an explicit design choice — git-native, diffable, no DB dependency
-  (PRD Q1; `docs/acc/001-2026-07-19-research-prompt-forge-build.md`) — but it
+  (PRD Q1; `docs/acc/001-2026-07-19-polyprompt-build.md`) — but it
   means write cost is O(total edges), not O(changed edges).
 - **Memo corpus scan is O(files) per command.** `store.existing_keys()`,
   `sufficiency._scan_memos()`, and `push._corpus_files()` each glob and parse
@@ -166,7 +166,7 @@ These are real absences, not oversights hidden from you:
   reasoning, not measured numbers.
 - **Per-mode rendering is not implemented.** Renderers are mode-agnostic —
   a `chat`-mode rewrite still emits the same verbose prompt shape as
-  `deep-research` (tracked in `docs/acc/001-2026-07-19-research-prompt-forge-build.md`, Open Questions).
+  `deep-research` (tracked in `docs/acc/001-2026-07-19-polyprompt-build.md`, Open Questions).
 - **Gate thresholds are unvalidated defaults.** `K_MIN=5`, `THETA_HIGH=0.7`,
   `DIVERSITY_MIN=3`, `MIN_PENDING_MEMOS=3`, `STALE_DAYS=30` are engineering
   judgment calls, not derived from data — there hasn't been a real usage

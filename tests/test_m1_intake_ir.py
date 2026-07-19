@@ -2,8 +2,8 @@
 
 import pytest
 
-from forge.intake import IntakeAnswers
-from forge.ir import normalize
+from polyprompt.intake import IntakeAnswers
+from polyprompt.ir import normalize
 
 
 def test_normalize_populates_from_intake():

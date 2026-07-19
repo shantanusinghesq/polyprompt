@@ -1,9 +1,9 @@
 """Sufficiency gate — pure assess() over memos + graph (scratchpad D-01..D-04)."""
 
-from forge.graph import Graph, seed_graph
-from forge.memo import render_frontmatter
-from forge.sufficiency import DIVERSITY_MIN, MIN_PENDING_MEMOS, assess
-from forge.taxonomy import load_taxonomy
+from polyprompt.graph import Graph, seed_graph
+from polyprompt.memo import render_frontmatter
+from polyprompt.sufficiency import DIVERSITY_MIN, MIN_PENDING_MEMOS, assess
+from polyprompt.taxonomy import load_taxonomy
 from tests.test_m4_graph import make_frontmatter
 
 

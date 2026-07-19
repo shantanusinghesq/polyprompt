@@ -1,10 +1,10 @@
 """M1 exit test — one prompt fans out to four distinct, engine-tuned variants."""
 
-from forge.__main__ import main
-from forge.intake import IntakeAnswers
-from forge.ir import normalize
-from forge.profile import ENGINES, load_all_profiles
-from forge.rewrite import rewrite
+from polyprompt.__main__ import main
+from polyprompt.intake import IntakeAnswers
+from polyprompt.ir import normalize
+from polyprompt.profile import ENGINES, load_all_profiles
+from polyprompt.rewrite import rewrite
 
 
 def _results():

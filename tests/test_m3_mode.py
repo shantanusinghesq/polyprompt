@@ -1,8 +1,8 @@
 """M3 — hybrid mode auto-detector: golden cases + escalation seam."""
 
-from forge.intake import IntakeAnswers
-from forge.ir import normalize
-from forge.mode import detect_mode
+from polyprompt.intake import IntakeAnswers
+from polyprompt.ir import normalize
+from polyprompt.mode import detect_mode
 
 
 def _ir(prompt, **intake):

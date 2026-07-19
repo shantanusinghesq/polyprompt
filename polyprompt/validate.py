@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from forge.graph import Graph
+from polyprompt.graph import Graph
 
 
 @dataclass

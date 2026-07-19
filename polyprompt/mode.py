@@ -16,7 +16,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Callable
 
-from forge.ir import PromptIR
+from polyprompt.ir import PromptIR
 
 # request phrasing that leans deep-research
 _DEEP_KEYWORDS = (

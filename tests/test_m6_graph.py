@@ -1,6 +1,6 @@
 """M6 — contra demotion + archive-not-delete on the graph."""
 
-from forge.graph import Graph, load_graph, save_graph
+from polyprompt.graph import Graph, load_graph, save_graph
 
 
 def labeled_graph(pos, neg, tactic="role-framing", dim="engine", value="chatgpt"):

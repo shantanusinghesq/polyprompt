@@ -1,8 +1,8 @@
-"""M6 — `forge review` CLI wiring (pure file I/O, no subprocesses)."""
+"""M6 — `polyprompt review` CLI wiring (pure file I/O, no subprocesses)."""
 
-from forge.__main__ import main
-from forge.graph import load_graph
-from forge.memo import render_frontmatter
+from polyprompt.__main__ import main
+from polyprompt.graph import load_graph
+from polyprompt.memo import render_frontmatter
 from tests.test_m4_graph import make_frontmatter
 
 

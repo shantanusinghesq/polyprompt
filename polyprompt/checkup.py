@@ -1,7 +1,7 @@
 """Monthly checkup — keep platform profiles current (PRD FR-8; M7).
 
 The checkup is user-invoked. The *judgment* (reading vendor primary docs and
-deciding what changed) happens at the command layer (/forge-checkup, model-
+deciding what changed) happens at the command layer (/polyprompt-checkup, model-
 assisted); this module is the deterministic core: a staleness report against
 each profile's `last_checked`, and a version-stamped propose/apply pair for
 profile diffs. Proposals never write; apply stamps `version` (YYYY.MM.N) and
@@ -19,7 +19,7 @@ from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
 
-from forge.profile import ENGINES, _PROFILE_DIR
+from polyprompt.profile import ENGINES, _PROFILE_DIR
 
 STALE_DAYS = 30  # monthly cadence
 

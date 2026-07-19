@@ -7,7 +7,7 @@ scope for these unit tests — that seam is a thin wrapper (SubprocessRunner).
 
 from pathlib import Path
 
-from forge.push import RunResult, push_corpus
+from polyprompt.push import RunResult, push_corpus
 
 
 class FakeRunner:

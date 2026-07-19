@@ -2,9 +2,9 @@
 
 from datetime import datetime
 
-from forge.intake import IntakeAnswers
-from forge.ir import normalize
-from forge.memo import (
+from polyprompt.intake import IntakeAnswers
+from polyprompt.ir import normalize
+from polyprompt.memo import (
     build_memo,
     derive_tags,
     parse_frontmatter,
@@ -12,9 +12,9 @@ from forge.memo import (
     render_frontmatter,
     slugify,
 )
-from forge.profile import load_profile
-from forge.rewrite import rewrite
-from forge.taxonomy import load_taxonomy
+from polyprompt.profile import load_profile
+from polyprompt.rewrite import rewrite
+from polyprompt.taxonomy import load_taxonomy
 
 _NOW = datetime(2026, 7, 19, 8, 30, 0)
 

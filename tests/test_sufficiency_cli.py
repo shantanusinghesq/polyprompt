@@ -1,7 +1,7 @@
-"""Sufficiency gate CLI — `forge sufficiency` exit codes + push advisory."""
+"""Sufficiency gate CLI — `polyprompt sufficiency` exit codes + push advisory."""
 
-from forge.__main__ import main
-from forge.graph import Graph, save_graph
+from polyprompt.__main__ import main
+from polyprompt.graph import Graph, save_graph
 from tests.test_m5_cli import patch_runner
 from tests.test_m5_push import fresh_repo_runner
 from tests.test_sufficiency import fm_for_edge, write_memos

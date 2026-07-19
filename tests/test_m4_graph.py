@@ -2,7 +2,7 @@
 
 import pytest
 
-from forge.graph import (
+from polyprompt.graph import (
     K_MIN,
     THETA_HIGH,
     Graph,
@@ -12,8 +12,8 @@ from forge.graph import (
     seed_graph,
     wilson_lower_bound,
 )
-from forge.memo import render_frontmatter
-from forge.taxonomy import load_taxonomy
+from polyprompt.memo import render_frontmatter
+from polyprompt.taxonomy import load_taxonomy
 
 
 def make_frontmatter(**overrides):

@@ -10,7 +10,7 @@ Push the accumulated explanation-memo corpus to a **private** GitHub repository.
 **Run the push:**
 
 ```bash
-python -m forge push --dir research-memos --repo "${ARGUMENTS:-research-prompt-forge-corpus}"
+python -m polyprompt push --dir research-memos --repo "${ARGUMENTS:-polyprompt-corpus}"
 ```
 
 What it does, in order: ensures `research-memos/` is a git repo (`git init` if needed); stages and commits the memos; ensures a **private** `origin` repo exists (creating it via `gh repo create --private` when absent — pass `--no-create` to refuse that); pushes.

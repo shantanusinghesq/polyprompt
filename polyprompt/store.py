@@ -2,7 +2,7 @@
 
 Memos are written to a directory (default `./research-memos/`). Dedupe key is
 `(source_prompt_hash, engine)`: a memo for the same prompt+engine already on
-disk is skipped, so re-running the same forge never duplicates memos. Pushing
+disk is skipped, so re-running the same rewrite never duplicates memos. Pushing
 this directory to the private corpus repo is M5's job — nothing here touches git.
 """
 
@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from forge.memo import Memo, parse_frontmatter
+from polyprompt.memo import Memo, parse_frontmatter
 
 DEFAULT_DIR = "research-memos"
 

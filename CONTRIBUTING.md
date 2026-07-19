@@ -3,14 +3,14 @@
 Short version: **write the failing test first.** Every module in this repo
 was built that way, and PRs are expected to match that discipline — not
 because it's dogma, but because the golden-fixture strategy (`tests/`) is
-the only thing making `forge/ir.py`, `forge/mode.py`, and friends trustworthy
+the only thing making `polyprompt/ir.py`, `polyprompt/mode.py`, and friends trustworthy
 without needing to re-read them on every change.
 
 ## Setup
 
 ```bash
-git clone https://github.com/haremantra/research-prompt-forge.git
-cd research-prompt-forge
+git clone https://github.com/haremantra/polyprompt.git
+cd polyprompt
 pip install -e ".[dev]"
 python -m pytest -q     # should print "139 passed" (or however many exist now)
 ```
@@ -19,7 +19,7 @@ python -m pytest -q     # should print "139 passed" (or however many exist now)
 3.10/3.11/3.12) on every push and PR to `main` — run it locally first anyway;
 waiting for CI to tell you a test broke is slower than knowing before you
 push. CI also shadows `git`/`gh` with failing stubs during the test run, so
-if a future test forgets to inject a fake `Runner` (see `forge/push.py`), the
+if a future test forgets to inject a fake `Runner` (see `polyprompt/push.py`), the
 build fails loudly instead of silently succeeding or, worse, actually
 shelling out — see the incident note under "subprocess-shelling module"
 above.
@@ -40,7 +40,7 @@ above.
 
 ## Development loop (red-green-refactor, no exceptions)
 
-This project follows strict TDD — every `forge/*.py` module was built this
+This project follows strict TDD — every `polyprompt/*.py` module was built this
 way, verified by watching each test fail before the implementation existed.
 Match that pattern:
 
@@ -54,7 +54,7 @@ Match that pattern:
    for the tone: short, states the *why*, not the *what*).
 4. **Run the full suite**, not just your new file — `python -m pytest -q`.
    Regressions in unrelated modules are the fastest way to get a PR bounced.
-5. **If you touched a subprocess-shelling module** (`forge/push.py` is the
+5. **If you touched a subprocess-shelling module** (`polyprompt/push.py` is the
    only one today), read the test seam pattern in `tests/test_m5_push.py`
    first. A previous session broke this seam and it created two real
    private GitHub repos before the mistake was caught — see the injectable
@@ -65,13 +65,13 @@ Match that pattern:
 
 - No comments explaining *what* the code does — names should do that.
   Module-level docstrings explain *why* a design choice was made, when the
-  reason isn't obvious from reading the code (see any `forge/*.py` header
+  reason isn't obvious from reading the code (see any `polyprompt/*.py` header
   for the calibration).
 - Dataclasses over dicts for anything with a stable shape.
 - Pure functions where the domain allows it — `ir.normalize()`,
   `rewrite.rewrite()`, `sufficiency.assess()` are all deterministic with no
   I/O; that purity is load-bearing for the test strategy, not incidental.
-- New CLI subcommands go in `forge/__main__.py` as a thin `_cmd_*` wrapper
+- New CLI subcommands go in `polyprompt/__main__.py` as a thin `_cmd_*` wrapper
   around a pure function living in its own module — follow the existing
   6-subcommand pattern, don't put logic directly in `_cmd_*`.
 
@@ -79,7 +79,7 @@ Match that pattern:
 
 - One logical change per commit; commit messages state *why*, not just
   *what* (the existing history is the reference — e.g. `git log --oneline`).
-- Version bumps: `forge/__init__.py` and `.claude-plugin/plugin.json` are
+- Version bumps: `polyprompt/__init__.py` and `.claude-plugin/plugin.json` are
   kept in sync manually — bump both if your change is milestone-shaped.
   `pyproject.toml`'s `version` field should track the same number (this
   drifted once already; don't let it happen again).
@@ -99,7 +99,7 @@ require touching the core pipeline's invariants.
 ## What this project is not looking for
 
 - New target engines beyond the current four — explicitly out of scope per
-  the original spec (`docs/acc/001-2026-07-19-research-prompt-forge-build.md`).
+  the original spec (`docs/acc/001-2026-07-19-polyprompt-build.md`).
 - Auto-executing rewritten prompts against the live engines — also
   explicitly out of scope; this tool produces prompts, it doesn't run them.
 - Anything that makes validation blocking, or that sends memos off the

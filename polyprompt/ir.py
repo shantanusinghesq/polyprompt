@@ -12,7 +12,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass, field
 
-from forge.intake import DEPTH_LABELS, IntakeAnswers
+from polyprompt.intake import DEPTH_LABELS, IntakeAnswers
 
 # keyword -> canonical source-preference label (insertion order preserved)
 _SOURCE_HINTS = {

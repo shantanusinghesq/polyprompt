@@ -19,7 +19,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable
 
-DEFAULT_REPO = "research-prompt-forge-corpus"
+DEFAULT_REPO = "polyprompt-corpus"
 
 
 @dataclass

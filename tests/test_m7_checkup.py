@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from forge.checkup import (
+from polyprompt.checkup import (
     STALE_DAYS,
     apply_update,
     checkup_status,
@@ -127,7 +127,7 @@ class TestProposeAndApply:
 
 class TestShippedProfiles:
     def test_all_four_profiles_have_checkup_fields(self):
-        from forge.profile import ENGINES, _PROFILE_DIR
+        from polyprompt.profile import ENGINES, _PROFILE_DIR
 
         for engine in ENGINES:
             data = json.loads((_PROFILE_DIR / f"{engine}.json").read_text())

@@ -2,7 +2,7 @@
 
 import pytest
 
-from forge.profile import ENGINES, load_all_profiles, load_profile
+from polyprompt.profile import ENGINES, load_all_profiles, load_profile
 
 
 def test_all_profiles_load():

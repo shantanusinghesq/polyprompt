@@ -1,8 +1,8 @@
-"""M7 — `forge checkup` CLI wiring."""
+"""M7 — `polyprompt checkup` CLI wiring."""
 
 import json
 
-from forge.__main__ import main
+from polyprompt.__main__ import main
 
 
 class TestCheckupCli:
@@ -16,7 +16,7 @@ class TestCheckupCli:
 
     def test_propose_prints_version_stamped_diff(self, tmp_path, capsys, monkeypatch):
         # copy real profiles into a sandbox so --apply never touches the repo
-        from forge.profile import _PROFILE_DIR
+        from polyprompt.profile import _PROFILE_DIR
 
         sandbox = tmp_path / "profiles"
         sandbox.mkdir()

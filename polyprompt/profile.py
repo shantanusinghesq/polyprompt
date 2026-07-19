@@ -1,6 +1,6 @@
 """Platform profiles — versioned, hand-authored config per engine.
 
-Each engine has a JSON profile under `forge/profiles/`. A profile captures the
+Each engine has a JSON profile under `polyprompt/profiles/`. A profile captures the
 engine's documented quirks (structure preference, length target, source-filter
 syntax, strengths) and the `default_mode` (M1 hardcodes `deep-research`; M3's
 auto-detector will override per run). The monthly checkup (M7) refreshes these
