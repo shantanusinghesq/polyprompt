@@ -1,14 +1,16 @@
 # Research Prompt Forge
 
-A Claude Code plugin that rewrites **one** general internet-research prompt into
-versions optimized for each AI search engine — **ChatGPT, Gemini, Claude,
-Perplexity** — and writes an explanation memo per rewrite. The memos accumulate
-into a **knowledge graph of prompt-optimization tactics** that validates future
-rewrites.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-> Full spec: `../Bloom_playground/docs/prd/research-prompt-forge.md`
-> Build sequence: `../Bloom_playground/docs/scratchpad-build-sequence-research-prompt-forge.md`
-> Graduation criteria: `../Bloom_playground/docs/poc-to-v1-graduation-criteria.md`
+A CLI (and Claude Code plugin) that rewrites **one** general internet-research
+prompt into versions optimized for each AI search engine — **ChatGPT, Gemini,
+Claude, Perplexity** — and writes an explanation memo per rewrite. The memos
+accumulate into a **knowledge graph of prompt-optimization tactics** that
+validates future rewrites.
+
+> Full engineering trail lives in-repo: `docs/EXPLAINER.md` (start here),
+> `docs/acc/` (build-decision log), `docs/scratchpad-*.md` (individual decision
+> records with rejected alternatives).
 
 ## Status: v0.8.0 — M0–M7 complete
 
@@ -28,45 +30,106 @@ One general prompt → four engine-tuned variants + explanation memos, with per-
 | **M7** Monthly profile checkup | ✅ done |
 | *(post-M7)* Sufficiency gate — should ingest run? | ✅ done |
 
+## Install
+
+Requires Python 3.10+. No third-party runtime dependencies — the core is pure
+stdlib (deliberately: see `docs/EXPLAINER.md` §3.2 on why the deterministic
+core stays dependency-free).
+
+```bash
+git clone https://github.com/haremantra/research-prompt-forge.git
+cd research-prompt-forge
+pip install -e .          # installs the `forge` CLI (editable)
+forge --version
+```
+
+That's the whole install, everywhere — it's a plain Python package, so the
+steps above are identical whether you're typing them into a regular terminal
+or an agentic coding tool's shell. The differences below are only about how
+each tool *uses* the repo once it's cloned.
+
+### If you're using an agentic coding CLI
+
+**Codex, Gemini CLI, or Claude Code (as a bare CLI tool):** nothing special —
+paste the three commands above into the agent's shell/bash tool and it runs
+exactly like it would for you locally. These tools can `git clone` and `pip
+install` on their own if you ask them to ("clone
+`https://github.com/haremantra/research-prompt-forge` and set it up").
+
+**Claude Code (as a plugin, for the `/forge-*` slash commands):** the repo
+ships a plugin manifest (`.claude-plugin/plugin.json`) and slash commands
+(`commands/*.md`). After cloning, either open Claude Code with this directory
+as your project root (commands are picked up automatically), or add it as a
+plugin from a local path:
+```
+/plugin marketplace add /path/to/research-prompt-forge
+/plugin install research-prompt-forge
+```
+Either way you get `/forge-prompts`, `/forge-review`, `/forge-push`, and
+`/forge-checkup` in addition to the bare `forge` CLI.
+
+**Claude Desktop:** Desktop chat alone has no shell or `git` access — it can't
+clone a repo by itself. Clone it in a regular terminal first (`git clone` +
+`pip install -e .` above), then either run `forge` yourself and paste the
+output into Desktop, or, if you have an MCP server with filesystem/shell
+access configured, point it at the cloned directory so Desktop can drive it
+directly.
+
+**Perplexity:** not applicable here — Perplexity has no local shell or repo
+access, and in this project it isn't a host for the tool at all. It's one of
+the four **target engines** `forge` rewrites prompts *for* (see `--engine
+perplexity` below). The way you'd actually use this tool with Perplexity is:
+run `forge` anywhere else, then paste the Perplexity-tuned rewrite into
+perplexity.ai yourself.
+
 ## Usage
+
+**Day one — the core loop.** This is the only thing you need to try it once:
 
 ```bash
 # all four engines, with the three-question intake answers as flags
-python -m forge rewrite --engine all \
+forge rewrite --engine all \
   --time-period "2024+" --depth 3 \
   "Compare 15-year TCO of heat pumps vs gas furnaces for a cold-climate US home"
 
 # a single engine
-python -m forge rewrite --engine claude "..."
+forge rewrite --engine claude "..."
 
 # print the three intake questions
-python -m forge intake
+forge intake
 ```
 
-As a Claude Code plugin, invoke `/forge-prompts` — it runs the three-question intake, then fans out to all four engines:
+As a Claude Code plugin, invoke `/forge-prompts` — same thing, conversational intake:
 
 ```
 /forge-prompts Compare 15-year TCO of heat pumps vs gas furnaces for a cold-climate US home
 ```
 
-Other commands: `/forge-review` (rate a memo, weight the graph), `/forge-push` (commit the corpus to a private repo), `/forge-checkup` (monthly profile freshness review). Or drive them directly:
+**Later — optional, once you have a memo corpus.** None of these are needed
+for the core loop above; they exist for building up and maintaining the
+knowledge graph over time (see `docs/EXPLAINER.md` §3.6–3.11):
 
 ```bash
-python -m forge sufficiency          # is there enough new evidence to update the graph?
-python -m forge review <memo> --reviewer "..." --intent 5 --quality 5 --explain "..." --mode-correct
-python -m forge push --repo my-corpus
-python -m forge checkup
+forge sufficiency          # read-only: is there enough new evidence to update the graph?
+forge review <memo> --reviewer "..." --intent 5 --quality 5 --explain "..." --mode-correct
+forge push --repo my-corpus    # explicit, opt-in: commit memos to a private GitHub repo
+forge checkup               # monthly: are the 4 platform profiles still accurate?
 ```
+
+Corresponding slash commands: `/forge-review`, `/forge-push`, `/forge-checkup`.
 
 ## Development
 
 ```bash
-python -m pytest          # run the test suite (M0 exit test lives in tests/)
+pip install -e ".[dev]"   # adds pytest
+python -m pytest          # run the test suite (139 tests)
 ```
 
 ## Layout
 
 ```
+LICENSE                      # MIT
+pyproject.toml               # package metadata; `forge` console-script entry point
 .claude-plugin/plugin.json   # Claude Code plugin manifest
 commands/                    # /forge-prompts, /forge-review, /forge-push, /forge-checkup
 forge/
