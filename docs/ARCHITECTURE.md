@@ -160,8 +160,6 @@ These are stated once here; the narrative doc explains *why* each one exists.
 
 These are real absences, not oversights hidden from you:
 
-- **No CI configuration.** `python -m pytest` (139 tests) must be run
-  manually before every commit; nothing enforces this on push or PR.
 - **No memo/graph schema migration tooling beyond implicit defaults.** A
   `schema_version` bump has no defined upgrade path.
 - **No performance benchmarks.** The complexity notes above are structural

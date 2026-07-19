@@ -1,5 +1,6 @@
 # Research Prompt Forge
 
+[![CI](https://github.com/haremantra/research-prompt-forge/actions/workflows/ci.yml/badge.svg)](https://github.com/haremantra/research-prompt-forge/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 A CLI (and Claude Code plugin) that rewrites **one** general internet-research

@@ -15,9 +15,14 @@ pip install -e ".[dev]"
 python -m pytest -q     # should print "139 passed" (or however many exist now)
 ```
 
-No CI runs this automatically yet (see `docs/ARCHITECTURE.md`, Known Gaps) —
-**you are the CI** until that changes. A PR whose author didn't run the full
-suite locally is the single most common way to slow down review here.
+`.github/workflows/ci.yml` runs this same command (matrixed across Python
+3.10/3.11/3.12) on every push and PR to `main` — run it locally first anyway;
+waiting for CI to tell you a test broke is slower than knowing before you
+push. CI also shadows `git`/`gh` with failing stubs during the test run, so
+if a future test forgets to inject a fake `Runner` (see `forge/push.py`), the
+build fails loudly instead of silently succeeding or, worse, actually
+shelling out — see the incident note under "subprocess-shelling module"
+above.
 
 ## Before you write any code
 

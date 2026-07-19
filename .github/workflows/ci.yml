@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: pytest (py${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # pyproject.toml requires >=3.10; test the floor and two newer minors.
+        python-version: ["3.10", "3.11", "3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install (editable, with dev extras)
+        run: pip install -e ".[dev]"
+
+      - name: Verify the console-script entry point
+        run: forge --version
+
+      - name: Run test suite with git/gh shadowed
+        # Regression guard, not a functional requirement: every test that
+        # touches forge/push.py injects a fake Runner (see
+        # tests/test_m5_push.py, tests/test_m5_cli.py) or patches
+        # forge.push.make_runner, so no test should ever shell out to a real
+        # git/gh subprocess. Shadowing both with failing stubs turns "a test
+        # forgot to inject its fake runner" into a loud, immediate CI
+        # failure (exit 127) instead of a silent pass or, worse, a real
+        # subprocess call. See CONTRIBUTING.md for the incident this guards
+        # against.
+        run: |
+          STUB="$RUNNER_TEMP/stubbin"
+          mkdir -p "$STUB"
+          printf '#!/bin/sh\necho "CI STUB: %s blocked — test seam did not inject a fake runner" >&2\nexit 127\n' git > "$STUB/git"
+          printf '#!/bin/sh\necho "CI STUB: %s blocked — test seam did not inject a fake runner" >&2\nexit 127\n' gh > "$STUB/gh"
+          chmod +x "$STUB/git" "$STUB/gh"
+          PATH="$STUB:$PATH" python -m pytest -q
