@@ -10,16 +10,16 @@ rewrites.
 > Build sequence: `../Bloom_playground/docs/scratchpad-build-sequence-research-prompt-forge.md`
 > Graduation criteria: `../Bloom_playground/docs/poc-to-v1-graduation-criteria.md`
 
-## Status: M2 — memos + local save + taxonomy.v1
+## Status: M3 — hybrid mode auto-detector
 
-One general prompt → four engine-tuned variants, each with an explanation memo carrying **knowledge-graph frontmatter** (tactics + tags), saved locally with dedupe. Mode is hardcoded to `deep-research` (auto-detection lands in M3).
+One general prompt → four engine-tuned variants + explanation memos, with **per-run mode auto-detection** (deep-research vs. chat) — rules-first over the IR, escalating borderline cases to a model-fallback seam. The decision + reason is recorded on every rewrite and memo.
 
 | Milestone | State |
 |-----------|-------|
 | **M0** Scaffold walking skeleton | ✅ done |
 | **M1** Rewrite fan-out to 4 engines | ✅ done |
 | **M2** Memos + local save + taxonomy.v1 | ✅ done |
-| M3 Mode auto-detector (hybrid) | ⬜ |
+| **M3** Mode auto-detector (hybrid) | ✅ done |
 | M4 Knowledge graph + validator | ⬜ |
 | M5 Private repo push (gh) | ⬜ |
 | M6 Review loop → edge weighting | ⬜ |
@@ -63,6 +63,7 @@ forge/
   ir.py                      # PromptIR + normalize()
   profile.py                 # PlatformProfile loader + validation
   rewrite.py                 # profile-driven renderers (emit taxonomy tactic IDs)
+  mode.py                    # hybrid mode auto-detector (rules + model-fallback seam)
   taxonomy.py                # taxonomy loader
   taxonomy.v1.json           # seed vocabulary: tactics + closed tag dimensions
   memo.py                    # explanation-memo generation + KG frontmatter

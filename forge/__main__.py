@@ -16,6 +16,7 @@ from forge import __version__
 from forge.intake import IntakeAnswers, QUESTIONS
 from forge.ir import normalize
 from forge.memo import build_memo
+from forge.mode import ModeDecision, detect_mode
 from forge.profile import ENGINES, load_all_profiles, load_profile
 from forge.rewrite import RewriteResult, rewrite
 from forge.store import existing_keys, save_memo
@@ -24,7 +25,8 @@ from forge.taxonomy import Taxonomy, load_taxonomy
 
 def _format_result(result: RewriteResult, taxonomy: Taxonomy) -> str:
     lines = [
-        f"## {result.engine.upper()}  [mode: {result.mode} · profile {result.profile_version}]",
+        f"## {result.engine.upper()}  [mode: {result.mode} ({result.mode_source}) · "
+        f"profile {result.profile_version}]",
         "",
         result.prompt,
         "",
@@ -48,11 +50,17 @@ def _cmd_rewrite(args: argparse.Namespace) -> int:
 
     taxonomy = load_taxonomy()
 
+    if args.mode == "auto":
+        decision = detect_mode(ir)
+    else:
+        decision = ModeDecision(mode=args.mode, reason="forced via --mode", source="forced")
+    print(f"Detected mode: {decision.mode} ({decision.source}) — {decision.reason}\n")
+
     if args.engine == "all":
         profiles = load_all_profiles()
-        results = [rewrite(ir, profiles[engine]) for engine in ENGINES]
+        results = [rewrite(ir, profiles[engine], decision) for engine in ENGINES]
     else:
-        results = [rewrite(ir, load_profile(args.engine))]
+        results = [rewrite(ir, load_profile(args.engine), decision)]
 
     print("\n\n".join(_format_result(r, taxonomy) for r in results))
 
@@ -94,6 +102,12 @@ def build_parser() -> argparse.ArgumentParser:
         "--depth", type=int, default=2, choices=[1, 2, 3], help="Intake Q2: reasoning layers (default 2)."
     )
     rewrite_p.add_argument("--clarify", default="", help="Intake Q3: free-text disambiguation.")
+    rewrite_p.add_argument(
+        "--mode",
+        default="auto",
+        choices=["auto", "deep-research", "chat"],
+        help="Mode: 'auto' (detect, default) or force deep-research / chat.",
+    )
     rewrite_p.add_argument(
         "--memos",
         default="",

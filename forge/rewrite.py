@@ -18,6 +18,7 @@ import re
 from dataclasses import dataclass
 
 from forge.ir import PromptIR
+from forge.mode import ModeDecision
 from forge.profile import PlatformProfile
 
 _YEAR_RE = re.compile(r"(20\d{2})")
@@ -30,6 +31,8 @@ class RewriteResult:
     prompt: str
     tactics: list[str]  # taxonomy tactic IDs applied
     profile_version: str
+    mode_source: str = "default"  # "rules" | "model" | "default" | "forced"
+    mode_reason: str = "profile default (no detection)"
 
 
 def _recency_phrase(ir: PromptIR) -> str:
@@ -126,7 +129,11 @@ _RENDERERS = {
 }
 
 
-def rewrite(ir: PromptIR, profile: PlatformProfile) -> RewriteResult:
+def rewrite(
+    ir: PromptIR,
+    profile: PlatformProfile,
+    mode_decision: ModeDecision | None = None,
+) -> RewriteResult:
     renderer = _RENDERERS.get(profile.structure)
     if renderer is None:
         raise ValueError(f"no renderer for structure: {profile.structure!r}")
@@ -138,10 +145,21 @@ def rewrite(ir: PromptIR, profile: PlatformProfile) -> RewriteResult:
     if ir.constraints and "disambiguation" not in tactics:
         tactics = [*tactics, "disambiguation"]
 
+    if mode_decision is not None:
+        mode = mode_decision.mode
+        mode_source = mode_decision.source
+        mode_reason = mode_decision.reason
+    else:
+        mode = profile.default_mode
+        mode_source = "default"
+        mode_reason = "profile default (no detection)"
+
     return RewriteResult(
         engine=profile.engine,
-        mode=profile.default_mode,
+        mode=mode,
         prompt=text,
         tactics=tactics,
         profile_version=profile.version,
+        mode_source=mode_source,
+        mode_reason=mode_reason,
     )
