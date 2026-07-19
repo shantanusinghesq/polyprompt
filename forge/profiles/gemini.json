@@ -4,8 +4,23 @@
   "default_mode": "deep-research",
   "structure": "research-plan",
   "length": "verbose",
-  "source_filter_syntax": ["source-type breadth requests"],
-  "strengths": ["approvable research plan", "breadth across sources", "long-context synthesis"],
-  "directives": ["Outline a research plan first", "Emphasize breadth", "Synthesize comprehensively"],
-  "notes": "Gemini Deep Research surfaces an editable plan; prompts that pre-state a plan and ask for breadth do better. Hand-authored M1."
+  "source_filter_syntax": [
+    "source-type breadth requests"
+  ],
+  "strengths": [
+    "approvable research plan",
+    "breadth across sources",
+    "long-context synthesis"
+  ],
+  "directives": [
+    "Outline a research plan first",
+    "Emphasize breadth",
+    "Synthesize comprehensively"
+  ],
+  "notes": "Gemini Deep Research surfaces an editable plan; prompts that pre-state a plan and ask for breadth do better. Hand-authored M1.",
+  "doc_sources": [
+    "https://ai.google.dev/gemini-api/docs",
+    "https://support.google.com/gemini/answer/14903178"
+  ],
+  "last_checked": "2026-07-19"
 }

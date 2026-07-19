@@ -4,8 +4,23 @@
   "default_mode": "deep-research",
   "structure": "xml-sections",
   "length": "moderate",
-  "source_filter_syntax": ["explicit source constraints inside <constraints>"],
-  "strengths": ["delimited/XML section parsing", "faithful step-by-step reasoning", "uncertainty flagging"],
-  "directives": ["Use XML-style tags", "Instruct step-by-step reasoning", "Request explicit uncertainty flags"],
-  "notes": "Claude parses delimited sections reliably and rewards explicit reasoning + faithfulness instructions. Hand-authored M1."
+  "source_filter_syntax": [
+    "explicit source constraints inside <constraints>"
+  ],
+  "strengths": [
+    "delimited/XML section parsing",
+    "faithful step-by-step reasoning",
+    "uncertainty flagging"
+  ],
+  "directives": [
+    "Use XML-style tags",
+    "Instruct step-by-step reasoning",
+    "Request explicit uncertainty flags"
+  ],
+  "notes": "Claude parses delimited sections reliably and rewards explicit reasoning + faithfulness instructions. Hand-authored M1.",
+  "doc_sources": [
+    "https://docs.claude.com/en/docs/build-with-claude/prompt-engineering/overview",
+    "https://support.claude.com/en/articles/10366275-research-on-claude"
+  ],
+  "last_checked": "2026-07-19"
 }

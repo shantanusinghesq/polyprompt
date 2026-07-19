@@ -4,8 +4,24 @@
   "default_mode": "deep-research",
   "structure": "role-framed",
   "length": "verbose",
-  "source_filter_syntax": ["explicit source-type requests", "\"cite sources\""],
-  "strengths": ["role priming", "structured multi-section output", "explicit constraint following"],
-  "directives": ["Assign an expert role", "Enumerate constraints", "Request structured, cited output"],
-  "notes": "GPT deep-research responds well to explicit role framing and numbered constraints. Hand-authored M1; refresh via the monthly checkup (M7)."
+  "source_filter_syntax": [
+    "explicit source-type requests",
+    "\"cite sources\""
+  ],
+  "strengths": [
+    "role priming",
+    "structured multi-section output",
+    "explicit constraint following"
+  ],
+  "directives": [
+    "Assign an expert role",
+    "Enumerate constraints",
+    "Request structured, cited output"
+  ],
+  "notes": "GPT deep-research responds well to explicit role framing and numbered constraints. Hand-authored M1; refresh via the monthly checkup (M7).",
+  "doc_sources": [
+    "https://platform.openai.com/docs/guides/deep-research",
+    "https://help.openai.com/en/articles/10500283-deep-research-faq"
+  ],
+  "last_checked": "2026-07-19"
 }

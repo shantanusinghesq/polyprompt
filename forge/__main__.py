@@ -9,10 +9,12 @@ Subcommands:
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from pathlib import Path
 
 from forge import __version__
+from forge.checkup import STALE_DAYS, apply_update, checkup_status, propose_update
 from forge.graph import ingest_directory, load_graph, save_graph, seed_graph
 from forge.intake import IntakeAnswers, QUESTIONS
 from forge.ir import normalize
@@ -153,6 +155,53 @@ def _cmd_review(args: argparse.Namespace) -> int:
     accuracy = mode_accuracy(load_reviews(memo_path.parent))
     if accuracy is not None:
         print(f"Mode accuracy: {accuracy:.0%} over reviewed memos in {memo_path.parent}")
+    return 0
+
+
+def _cmd_checkup(args: argparse.Namespace) -> int:
+    from datetime import date
+
+    today = date.today()
+
+    if not args.engine:
+        print(f"Profile checkup — stale after {STALE_DAYS} days:\n")
+        for s in checkup_status(now=today):
+            age = f"{s.days_since}d ago" if s.days_since is not None else "never"
+            marker = "STALE" if s.stale else "fresh"
+            print(f"  [{marker}] {s.engine:<11} v{s.version}  checked {age}")
+            for url in s.doc_sources:
+                print(f"          doc: {url}")
+        print("\nReview the docs above, then propose:"
+              "\n  forge checkup --engine <e> --set field=<json> [--apply]")
+        return 0
+
+    updates = {}
+    for item in args.set or []:
+        field, sep, raw = item.partition("=")
+        if not sep:
+            print(f"error: --set expects field=<json>, got {item!r}", file=sys.stderr)
+            return 2
+        try:
+            updates[field] = json.loads(raw)
+        except json.JSONDecodeError as exc:
+            print(f"error: --set {field}: value is not valid JSON ({exc})",
+                  file=sys.stderr)
+            return 2
+    try:
+        proposal = propose_update(args.engine, updates, now=today)
+    except ValueError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
+
+    print(f"Proposed update: {proposal.engine} "
+          f"v{proposal.old_version} -> v{proposal.new_version}")
+    for field, (old, new) in proposal.changes.items():
+        print(f"  {field}: {old!r} -> {new!r}")
+    if args.apply:
+        path = apply_update(proposal)
+        print(f"Applied: {path}")
+    else:
+        print("Proposal only — re-run with --apply to write it.")
     return 0
 
 
@@ -309,6 +358,20 @@ def build_parser() -> argparse.ArgumentParser:
     suff_p.add_argument("--graph", default="research-memos/graph.json", metavar="PATH",
                         help="Graph JSON to assess against (default: research-memos/graph.json).")
     suff_p.set_defaults(func=_cmd_sufficiency)
+
+    checkup_p = sub.add_parser(
+        "checkup",
+        help="Monthly profile checkup: staleness report, or a version-stamped "
+        "profile diff (--engine + --set, --apply to write).",
+    )
+    checkup_p.add_argument("--engine", default="", choices=[*ENGINES, ""],
+                           help="Engine to propose an update for (omit for the report).")
+    checkup_p.add_argument("--set", action="append", metavar="FIELD=JSON",
+                           help="Field change as JSON, repeatable "
+                           "(e.g. --set length='\"concise\"').")
+    checkup_p.add_argument("--apply", action="store_true",
+                           help="Write the proposed update (default: propose only).")
+    checkup_p.set_defaults(func=_cmd_checkup)
 
     return parser
 
