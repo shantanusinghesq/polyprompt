@@ -19,6 +19,7 @@ from forge.ir import normalize
 from forge.memo import build_memo, derive_tags
 from forge.mode import ModeDecision, detect_mode
 from forge.profile import ENGINES, load_all_profiles, load_profile
+from forge.push import DEFAULT_REPO, push_corpus
 from forge.rewrite import RewriteResult, rewrite
 from forge.store import existing_keys, save_memo
 from forge.taxonomy import Taxonomy, load_taxonomy
@@ -102,6 +103,26 @@ def _cmd_intake(_args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_push(args: argparse.Namespace) -> int:
+    directory = Path(args.dir)
+    from datetime import datetime
+
+    stamp = datetime.now().strftime("%Y-%m-%d %H:%M")
+    message = args.message or f"corpus: memo update ({stamp})"
+    # Let push_corpus build the runner internally (via forge.push.make_runner)
+    # so the test seam that patches make_runner takes effect.
+    result = push_corpus(
+        directory,
+        args.repo,
+        message=message,
+        create_if_missing=not args.no_create,
+    )
+    print(f"[{result.status}] {result.report}")
+    # pushed / noop are successful outcomes; local / failed are not (but the
+    # local copy is always retained — FR-5).
+    return 0 if result.status in ("pushed", "noop") else 1
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="forge",
@@ -146,6 +167,25 @@ def build_parser() -> argparse.ArgumentParser:
 
     intake_p = sub.add_parser("intake", help="Print the three intake questions.")
     intake_p.set_defaults(func=_cmd_intake)
+
+    push_p = sub.add_parser(
+        "push",
+        help="Commit the local memo corpus to a private GitHub repo (explicit, opt-in).",
+    )
+    push_p.add_argument(
+        "--dir", default="research-memos", metavar="DIR",
+        help="Corpus directory to push (default: research-memos).",
+    )
+    push_p.add_argument(
+        "--repo", default=DEFAULT_REPO, metavar="SLUG",
+        help=f"Private repo slug or owner/slug (default: {DEFAULT_REPO}).",
+    )
+    push_p.add_argument("--message", default="", help="Override the commit message.")
+    push_p.add_argument(
+        "--no-create", action="store_true",
+        help="Fail instead of creating the private repo if it does not exist.",
+    )
+    push_p.set_defaults(func=_cmd_push)
 
     return parser
 
