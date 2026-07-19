@@ -23,6 +23,7 @@ from forge.push import DEFAULT_REPO, push_corpus
 from forge.review import Review, apply_review, load_reviews, mode_accuracy, save_review
 from forge.rewrite import RewriteResult, rewrite
 from forge.store import existing_keys, save_memo
+from forge.sufficiency import assess
 from forge.taxonomy import Taxonomy, load_taxonomy
 from forge.validate import validate
 
@@ -155,6 +156,35 @@ def _cmd_review(args: argparse.Namespace) -> int:
     return 0
 
 
+def _fmt_edge(key) -> str:
+    tactic, dimension, value = key
+    return f"{tactic} <-> {dimension}={value}"
+
+
+def _cmd_sufficiency(args: argparse.Namespace) -> int:
+    graph_path = Path(args.graph)
+    graph = load_graph(graph_path) if graph_path.exists() else seed_graph(load_taxonomy())
+    report = assess(Path(args.memos), graph)
+
+    print(f"Pending: {report.pending_memos} memo(s), {report.pending_labels} label(s)")
+    for bucket in ("PROMOTE-READY", "CONTESTED", "NEEDS-MORE", "DORMANT"):
+        keys = report.buckets.get(bucket, [])
+        print(f"{bucket}: {len(keys)}")
+        # DORMANT is mostly seeds — count only keeps the report readable.
+        if bucket != "DORMANT":
+            for key in keys:
+                print(f"  - {_fmt_edge(key)}")
+    for key in report.vetoed:
+        print(f"note: {_fmt_edge(key)} would promote but is under the "
+              "diversity floor (advisory)")
+
+    if report.sufficient:
+        print("sufficient: run ingest (forge rewrite --graph / graph ingest)")
+        return 0
+    print("insufficient: not enough new evidence to move the graph")
+    return 1
+
+
 def _cmd_push(args: argparse.Namespace) -> int:
     directory = Path(args.dir)
     from datetime import datetime
@@ -170,6 +200,15 @@ def _cmd_push(args: argparse.Namespace) -> int:
         create_if_missing=not args.no_create,
     )
     print(f"[{result.status}] {result.report}")
+
+    # Advisory sufficiency line (D-04): only when a graph lives in the corpus.
+    graph_json = directory / "graph.json"
+    if graph_json.exists():
+        report = assess(directory, load_graph(graph_json))
+        state = "sufficient" if report.sufficient else "insufficient"
+        print(f"Sufficiency (advisory): {state} — {report.pending_memos} pending "
+              f"memo(s), {len(report.would_promote)} promotion(s) available")
+
     # pushed / noop are successful outcomes; local / failed are not (but the
     # local copy is always retained — FR-5).
     return 0 if result.status in ("pushed", "noop") else 1
@@ -259,6 +298,17 @@ def build_parser() -> argparse.ArgumentParser:
         help="Fail instead of creating the private repo if it does not exist.",
     )
     push_p.set_defaults(func=_cmd_push)
+
+    suff_p = sub.add_parser(
+        "sufficiency",
+        help="Assess whether enough new memo evidence exists to update the graph "
+        "(read-only; exit 0 = sufficient, 1 = insufficient).",
+    )
+    suff_p.add_argument("--memos", default="research-memos", metavar="DIR",
+                        help="Memo directory to scan (default: research-memos).")
+    suff_p.add_argument("--graph", default="research-memos/graph.json", metavar="PATH",
+                        help="Graph JSON to assess against (default: research-memos/graph.json).")
+    suff_p.set_defaults(func=_cmd_sufficiency)
 
     return parser
 
