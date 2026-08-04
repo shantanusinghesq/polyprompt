@@ -1,0 +1,861 @@
+{
+  "generated": "2026-07-20",
+  "acc_range": [
+    1,
+    3
+  ],
+  "nodes": [
+    {
+      "id": "acc-001",
+      "type": "ACC",
+      "text": "research prompt forge build",
+      "acc_seq": 1,
+      "acc_date": "2026-07-19",
+      "focus": "research-prompt-forge build (M0\u2013M3 done, M4 next)"
+    },
+    {
+      "id": "acc-002",
+      "type": "ACC",
+      "text": "m4 m7 complete",
+      "acc_seq": 2,
+      "acc_date": "2026-07-19",
+      "focus": "research-prompt-forge M4\u2013M7 + sufficiency gate (build complete, v0.8.0)"
+    },
+    {
+      "id": "acc-003",
+      "type": "ACC",
+      "text": "docs ci and claude config fix",
+      "acc_seq": 3,
+      "acc_date": "2026-07-19",
+      "focus": "full session (docs overhaul + CI + claude-config repair; M4\u2013M7 build covered in ACC 002)"
+    },
+    {
+      "id": "dec-001-01",
+      "type": "Decision",
+      "text": "Build Claude Code plugin `research-prompt-forge` \u2014 one general research prompt \u2192 4 engine-tuned rewrites (ChatGPT/Gemini/Claude/Perplexity) + explanation memos \u2192 knowledge graph that validates rewrites. Spec: `~/Projects/Bloom_playground/docs/prd/research-prompt-forge.md`.",
+      "acc_seq": 1,
+      "acc_date": "2026-07-19"
+    },
+    {
+      "id": "dec-001-02",
+      "type": "Decision",
+      "text": "Fresh standalone repo `~/Projects/research-prompt-forge` (scratchpad D-09) \u2014 corpus is first-class, independently pushable.",
+      "acc_seq": 1,
+      "acc_date": "2026-07-19"
+    },
+    {
+      "id": "dec-001-03",
+      "type": "Decision",
+      "text": "Python 3.11; deterministic core + golden-fixture tests (D-07); model work lives at the plugin/command layer, not the CLI.",
+      "acc_seq": 1,
+      "acc_date": "2026-07-19"
+    },
+    {
+      "id": "dec-001-04",
+      "type": "Decision",
+      "text": "8-milestone sequence M0\u2013M7; critical path M0\u2192M1\u2192M2\u2192M4\u2192M6. Source: `Bloom_playground/docs/scratchpad-build-sequence-research-prompt-forge.md`.",
+      "acc_seq": 1,
+      "acc_date": "2026-07-19"
+    },
+    {
+      "id": "dec-001-05",
+      "type": "Decision",
+      "text": "Confirmed technical decisions (PRD \"Technical design decisions v1\"): (1) mode auto-detect per run; (2) memo frontmatter = KG-ready tactics+tags; (3) improvement = knowledge graph validating rewrites (NOT fine-tuning/few-shot/profile-only); (4) repo private-by-default, explicit push; (5) 3-question intake (time period, depth, ambiguity); (6) monthly checkup vs vendor docs; (7) gh CLI+UI auth; (8) distinct reviewer, depth-of-reasoning ratings.",
+      "acc_seq": 1,
+      "acc_date": "2026-07-19"
+    },
+    {
+      "id": "dec-001-06",
+      "type": "Decision",
+      "text": "Graph = git-native flat JSON edge-list; validation ADVISORY/non-blocking; k_min=5 support gate; Wilson-LB \u22650.7 \u2192 promote to required; seed edges `provenance:seed` (never counted as labels); archive-not-delete. (PRD Q1/Q4 + `poc-to-v1-graduation-criteria.md`.)",
+      "acc_seq": 1,
+      "acc_date": "2026-07-19"
+    },
+    {
+      "id": "dec-001-07",
+      "type": "Decision",
+      "text": "Taxonomy = curated seed (18 tactics + 6 closed tag dims), reviewer-gated growth.",
+      "acc_seq": 1,
+      "acc_date": "2026-07-19"
+    },
+    {
+      "id": "dec-001-08",
+      "type": "Decision",
+      "text": "One commit + version bump per milestone (user did not object to auto-commit; flagged twice).",
+      "acc_seq": 1,
+      "acc_date": "2026-07-19"
+    },
+    {
+      "id": "dec-002-01",
+      "type": "Decision",
+      "text": "All decisions in ACC 001 (`docs/acc/001-2026-07-19-research-prompt-forge-build.md`) stand \u2014 read it first; this ACC only adds what changed since.",
+      "acc_seq": 2,
+      "acc_date": "2026-07-19"
+    },
+    {
+      "id": "dec-002-02",
+      "type": "Decision",
+      "text": "Contra demotion = negative-rate Wilson-LB \u22650.7 with the same k_min=5 gate; archive-not-delete via `Edge.status` (\"active\"/\"archived\"); archived edges never promote.",
+      "acc_seq": 2,
+      "acc_date": "2026-07-19"
+    },
+    {
+      "id": "dec-002-03",
+      "type": "Decision",
+      "text": "Review sentiment mapping: min(intent,quality) \u22654 \u2192 positive labels, \u22642 \u2192 negative, else neutral (recorded, no labels); dedupe (hash, engine, reviewer).",
+      "acc_seq": 2,
+      "acc_date": "2026-07-19"
+    },
+    {
+      "id": "dec-002-04",
+      "type": "Decision",
+      "text": "Sufficiency gate built **in addition to** M7, not in lieu \u2014 gate governs label ingest, M7 governs vendor-doc structure diffs. Full rationale + CoVE: `docs/scratchpad-memo-sufficiency-gate.md` (D-01..D-04).",
+      "acc_seq": 2,
+      "acc_date": "2026-07-19"
+    },
+    {
+      "id": "dec-002-05",
+      "type": "Decision",
+      "text": "Gate criterion = promotion simulation on a graph deepcopy (fires only if promoted set changes) + diversity veto (\u22653 distinct prompt hashes, recomputed from memo files) + hysteresis (\u22653 pending memos); output = 4-bucket triage (PROMOTE-READY/CONTESTED/NEEDS-MORE/DORMANT); advisory, read-only, exit 0/1.",
+      "acc_seq": 2,
+      "acc_date": "2026-07-19"
+    },
+    {
+      "id": "dec-002-06",
+      "type": "Decision",
+      "text": "Profile version stamps = `YYYY.MM.N` (increment within month, reset on new month); `engine`/`version`/`last_checked` are managed stamps, never settable via checkup `--set`; propose never writes, `--apply` stamps version+last_checked together.",
+      "acc_seq": 2,
+      "acc_date": "2026-07-19"
+    },
+    {
+      "id": "dec-002-07",
+      "type": "Decision",
+      "text": "Push semantics: statuses pushed/local/noop/failed; exit 0 on pushed/noop; failure always retains local copy (FR-5). Corpus repo default slug `research-prompt-forge-corpus`, created `--private` via gh.",
+      "acc_seq": 2,
+      "acc_date": "2026-07-19"
+    },
+    {
+      "id": "dec-002-08",
+      "type": "Decision",
+      "text": "Tests that could shell out run with git/gh shadowed by exit-127 stubs on PATH; runner is built inside `push_corpus` (not at CLI import) so monkeypatching `forge.push.make_runner` holds. See memory `subprocess-test-seam`.",
+      "acc_seq": 2,
+      "acc_date": "2026-07-19"
+    },
+    {
+      "id": "dec-003-01",
+      "type": "Decision",
+      "text": "No M8 exists \u2014 PRD/build-sequence define only M0\u2013M7, all shipped. Next-value work identified as documentation, not code (`docs/scratchpad-m8-vs-explainer.md`, CoVE-verified: grep for \"M8\" across all planning docs returns zero matches).",
+      "acc_seq": 3,
+      "acc_date": "2026-07-19"
+    },
+    {
+      "id": "dec-003-02",
+      "type": "Decision",
+      "text": "`docs/EXPLAINER.md` written as progressive disclosure (plain-English \u2192 per-stage mechanism detail) rather than splitting by audience \u2014 same document, increasing depth.",
+      "acc_seq": 3,
+      "acc_date": "2026-07-19"
+    },
+    {
+      "id": "dec-003-03",
+      "type": "Decision",
+      "text": "`docs/ARCHITECTURE.md` added as a separate scannable reference (module dep graph, data contracts, 7 stated invariants, complexity notes, honest gaps) \u2014 narrative and reference are different document shapes, not one extended doc. Prompted by maintainer-role review finding EXPLAINER reads beginner-friendly only through \u00a71\u20132, then mid-level+ by \u00a73.6 (Wilson-LB, advisory-vs-blocking architecture) \u2014 extending prose wouldn't fix that gap; a different document shape was needed.",
+      "acc_seq": 3,
+      "acc_date": "2026-07-19"
+    },
+    {
+      "id": "dec-003-04",
+      "type": "Decision",
+      "text": "MIT license adopted; `LICENSE` + `pyproject.toml` `license` field added.",
+      "acc_seq": 3,
+      "acc_date": "2026-07-19"
+    },
+    {
+      "id": "dec-003-05",
+      "type": "Decision",
+      "text": "Global `~/.claude/CLAUDE.md` was a missing symlink (target `~/claude-config/claude/CLAUDE.md` intact; likely lost during `_archived-context-20260713` cleanup) \u2014 relinked matching the repo's existing symlink pattern (settings.json, skills, scripts, statusline-command.sh all point into `~/claude-config/claude/`).",
+      "acc_seq": 3,
+      "acc_date": "2026-07-19"
+    },
+    {
+      "id": "dec-003-06",
+      "type": "Decision",
+      "text": "`claude-config` repo: merged `origin/main` (4 remote commits \u2014 14 vendored `mattpocock/skills`) with 6 local commits (CLAUDE.md fixes, statusline, settings, model-default change) \u2014 no conflicts, `git merge --no-edit` then pushed. Now at `609b179`, in sync.",
+      "acc_seq": 3,
+      "acc_date": "2026-07-19"
+    },
+    {
+      "id": "dec-003-07",
+      "type": "Decision",
+      "text": "CI test run shadows `git`/`gh` with exit-127 stubs \u2014 verified NOT functionally required (grepped: every push-touching test injects a fake `Runner` or patches `forge.push.make_runner`, no test builds a real `SubprocessRunner`) \u2014 added anyway as a regression guard so a future dropped test seam fails loudly instead of silently passing or shelling out for real.",
+      "acc_seq": 3,
+      "acc_date": "2026-07-19"
+    },
+    {
+      "id": "oq-001-01",
+      "type": "OpenQuestion",
+      "text": "Tactic-taxonomy growth process (reviewer-gated promotion) \u2014 not built until M6.",
+      "acc_seq": 1,
+      "acc_date": "2026-07-19"
+    },
+    {
+      "id": "oq-001-02",
+      "type": "OpenQuestion",
+      "text": "Mode-detector accuracy eval needs M6 reviewer mode-correctness labels \u2014 not built.",
+      "acc_seq": 1,
+      "acc_date": "2026-07-19"
+    },
+    {
+      "id": "oq-001-03",
+      "type": "OpenQuestion",
+      "text": "Per-mode rendering deferred \u2014 renderers are mode-agnostic (chat mode still emits verbose prompt).",
+      "acc_seq": 1,
+      "acc_date": "2026-07-19"
+    },
+    {
+      "id": "oq-001-04",
+      "type": "OpenQuestion",
+      "text": "v1.0 graduation (G2/G3/G4/G5/G9) needs a soak period with real reviewer ratings \u2014 not reachable by code alone (`poc-to-v1-graduation-criteria.md`).",
+      "acc_seq": 1,
+      "acc_date": "2026-07-19"
+    },
+    {
+      "id": "oq-002-01",
+      "type": "OpenQuestion",
+      "text": "v1.0 graduation (G2/G3/G4/G5/G9) needs a soak period \u2014 real prompts, distinct reviewer ratings, mode-correctness labels (`poc-to-v1-graduation-criteria.md`).",
+      "acc_seq": 2,
+      "acc_date": "2026-07-19"
+    },
+    {
+      "id": "oq-002-02",
+      "type": "OpenQuestion",
+      "text": "Per-mode rendering still deferred \u2014 renderers mode-agnostic (chat mode emits the verbose prompt).",
+      "acc_seq": 2,
+      "acc_date": "2026-07-19"
+    },
+    {
+      "id": "oq-002-03",
+      "type": "OpenQuestion",
+      "text": "Gate thresholds (MIN_PENDING_MEMOS=3, DIVERSITY_MIN=3) are unvalidated defaults \u2014 revisit after soak.",
+      "acc_seq": 2,
+      "acc_date": "2026-07-19"
+    },
+    {
+      "id": "oq-002-04",
+      "type": "OpenQuestion",
+      "text": "Plugin repo has no GitHub remote \u2014 push it? (separate from the corpus repo).",
+      "acc_seq": 2,
+      "acc_date": "2026-07-19"
+    },
+    {
+      "id": "oq-003-01",
+      "type": "OpenQuestion",
+      "text": "research-prompt-forge has no GitHub remote \u2014 badge/clone URLs are aspirational until pushed. User asked \"is that a step you're handling yourself?\" \u2014 unanswered at session end.",
+      "acc_seq": 3,
+      "acc_date": "2026-07-19"
+    },
+    {
+      "id": "oq-003-02",
+      "type": "OpenQuestion",
+      "text": "v1.0 graduation soak period still not started (carried from ACC 002) \u2014 real prompts, distinct reviewer, mode-correctness labels.",
+      "acc_seq": 3,
+      "acc_date": "2026-07-19"
+    },
+    {
+      "id": "oq-003-03",
+      "type": "OpenQuestion",
+      "text": "Gate thresholds (K_MIN=5, THETA_HIGH=0.7, DIVERSITY_MIN=3, MIN_PENDING_MEMOS=3, STALE_DAYS=30) remain unvalidated defaults.",
+      "acc_seq": 3,
+      "acc_date": "2026-07-19"
+    },
+    {
+      "id": "oq-003-04",
+      "type": "OpenQuestion",
+      "text": "Insights-review's load-bearing pick (bound adversarial-audit fan-out to \u22644 agents) was surfaced but never added to `~/.claude/CLAUDE.md` \u2014 the file didn't exist/wasn't linked at review time; now it is, so this is actionable.",
+      "acc_seq": 3,
+      "acc_date": "2026-07-19"
+    },
+    {
+      "id": "rej-001-01",
+      "type": "RejectedApproach",
+      "text": "Build inside Bloom_playground dir \u2014 rejected (D-09), corpus needs its own repo.",
+      "acc_seq": 1,
+      "acc_date": "2026-07-19"
+    },
+    {
+      "id": "rej-001-02",
+      "type": "RejectedApproach",
+      "text": "Improvement via fine-tuning / few-shot / profile-only edits \u2014 rejected for KG validation.",
+      "acc_seq": 1,
+      "acc_date": "2026-07-19"
+    },
+    {
+      "id": "rej-001-03",
+      "type": "RejectedApproach",
+      "text": "Graph DB / vector index for KG \u2014 rejected for v1; git-native edge-list.",
+      "acc_seq": 1,
+      "acc_date": "2026-07-19"
+    },
+    {
+      "id": "rej-001-04",
+      "type": "RejectedApproach",
+      "text": "Emergent/open tactic labels \u2014 rejected (label drift); curated seed.",
+      "acc_seq": 1,
+      "acc_date": "2026-07-19"
+    },
+    {
+      "id": "rej-001-05",
+      "type": "RejectedApproach",
+      "text": "All-4-engines M0 / horizontal layers / graph-first \u2014 rejected; walking-skeleton vertical slices.",
+      "acc_seq": 1,
+      "acc_date": "2026-07-19"
+    },
+    {
+      "id": "rej-001-06",
+      "type": "RejectedApproach",
+      "text": "Always-commit / public corpus \u2014 rejected; local-default private push.",
+      "acc_seq": 1,
+      "acc_date": "2026-07-19"
+    },
+    {
+      "id": "rej-001-07",
+      "type": "RejectedApproach",
+      "text": "Synthetic/LLM-bootstrapped graph edges \u2014 rejected (contaminates weighting); a-priori taxonomy seed instead.",
+      "acc_seq": 1,
+      "acc_date": "2026-07-19"
+    },
+    {
+      "id": "rej-001-08",
+      "type": "RejectedApproach",
+      "text": "Pure-heuristic or pure-model mode detection \u2014 rejected; hybrid.",
+      "acc_seq": 1,
+      "acc_date": "2026-07-19"
+    },
+    {
+      "id": "rej-002-01",
+      "type": "RejectedApproach",
+      "text": "Gate in lieu of M7 \u2014 memo-scanning can't detect vendor doc changes (FR-8 unmet).",
+      "acc_seq": 2,
+      "acc_date": "2026-07-19"
+    },
+    {
+      "id": "rej-002-02",
+      "type": "RejectedApproach",
+      "text": "Flat pending-label count as sole gate criterion \u2014 fires on volume that changes nothing.",
+      "acc_seq": 2,
+      "acc_date": "2026-07-19"
+    },
+    {
+      "id": "rej-002-03",
+      "type": "RejectedApproach",
+      "text": "CONTESTED edges blocking ingest \u2014 violates advisory-never-blocking stance.",
+      "acc_seq": 2,
+      "acc_date": "2026-07-19"
+    },
+    {
+      "id": "rej-002-04",
+      "type": "RejectedApproach",
+      "text": "Gate inside rewrite (per-save) or only inside push \u2014 noise / uninvocable for reviewers.",
+      "acc_seq": 2,
+      "acc_date": "2026-07-19"
+    },
+    {
+      "id": "rej-002-05",
+      "type": "RejectedApproach",
+      "text": "Per-edge hash bookkeeping in Edge schema for diversity \u2014 recompute from memo files at assess time instead (CoVE-01).",
+      "acc_seq": 2,
+      "acc_date": "2026-07-19"
+    },
+    {
+      "id": "rej-002-06",
+      "type": "RejectedApproach",
+      "text": "Provenance filtering in required_tactics \u2014 unnecessary; seed edges carry zero counts so the support gate excludes them structurally.",
+      "acc_seq": 2,
+      "acc_date": "2026-07-19"
+    },
+    {
+      "id": "rej-003-01",
+      "type": "RejectedApproach",
+      "text": "Inventing an \"M8\" milestone to keep building code \u2014 no spec basis; documentation was the actual gap.",
+      "acc_seq": 3,
+      "acc_date": "2026-07-19"
+    },
+    {
+      "id": "rej-003-02",
+      "type": "RejectedApproach",
+      "text": "Extending `EXPLAINER.md` further to also serve experts \u2014 wrong document shape; reference docs need scanability, not more narrative depth.",
+      "acc_seq": 3,
+      "acc_date": "2026-07-19"
+    },
+    {
+      "id": "rej-003-03",
+      "type": "RejectedApproach",
+      "text": "Splitting explainer into separate per-audience documents \u2014 user wants one continuous ramp, not a choice between docs.",
+      "acc_seq": 3,
+      "acc_date": "2026-07-19"
+    },
+    {
+      "id": "rej-003-04",
+      "type": "RejectedApproach",
+      "text": "Force-push or rebase to resolve `claude-config` divergence \u2014 clean merge was possible (no conflicts, additive remote changes), so ordinary `git merge` was correct and safer.",
+      "acc_seq": 3,
+      "acc_date": "2026-07-19"
+    },
+    {
+      "id": "rej-003-05",
+      "type": "RejectedApproach",
+      "text": "Fabricating Perplexity/Claude-Desktop repo-clone instructions \u2014 corrected instead: Perplexity is a rewrite *target*, not a host with shell access; Claude Desktop needs a terminal or MCP shell access, can't clone via chat alone.",
+      "acc_seq": 3,
+      "acc_date": "2026-07-19"
+    },
+    {
+      "id": "nxt-001-01",
+      "type": "NextAction",
+      "text": "**Start M4** (task #5): `forge/graph.py` (edge-list ingest + a-priori seed) + `forge/validate.py` (expected tactics, advisory flag).",
+      "acc_seq": 1,
+      "acc_date": "2026-07-19"
+    },
+    {
+      "id": "nxt-001-02",
+      "type": "NextAction",
+      "text": "Ingest `research-memos/*.md` frontmatter \u2192 tactic\u2194tag edges with (pos, neg, support); `provenance` field.",
+      "acc_seq": 1,
+      "acc_date": "2026-07-19"
+    },
+    {
+      "id": "nxt-001-03",
+      "type": "NextAction",
+      "text": "Cold-start: seed edges from taxonomy a-priori tactic\u2194tag mappings (`provenance:seed`), k_min=5 provisional gate \u2014 seeds never counted as labels.",
+      "acc_seq": 1,
+      "acc_date": "2026-07-19"
+    },
+    {
+      "id": "nxt-001-04",
+      "type": "NextAction",
+      "text": "Validator: for a run's IR tags, expected tactics = weight \u2265 \u03b8_high (0.7, Wilson-LB); flag missing/contra ADVISORY (non-blocking); wire into CLI `rewrite` output.",
+      "acc_seq": 1,
+      "acc_date": "2026-07-19"
+    },
+    {
+      "id": "nxt-001-05",
+      "type": "NextAction",
+      "text": "`tests/test_m4_*`: seeded graph flags a missing required tactic; below-gate/seed edges don't flag; validation never blocks. Bump 0.4.0, commit, mark task #5 done (unblocks M5).",
+      "acc_seq": 1,
+      "acc_date": "2026-07-19"
+    },
+    {
+      "id": "nxt-001-06",
+      "type": "NextAction",
+      "text": "Then M5 (gh push), M6 (review\u2192edge weighting via Wilson-LB), M7 (monthly checkup).",
+      "acc_seq": 1,
+      "acc_date": "2026-07-19"
+    },
+    {
+      "id": "nxt-002-01",
+      "type": "NextAction",
+      "text": "Soak: run real research prompts through `/forge-prompts`, collect `/forge-review` ratings from a distinct reviewer, watch `forge sufficiency`.",
+      "acc_seq": 2,
+      "acc_date": "2026-07-19"
+    },
+    {
+      "id": "nxt-002-02",
+      "type": "NextAction",
+      "text": "Optional: push the plugin repo itself to GitHub (`gh repo create research-prompt-forge --private`).",
+      "acc_seq": 2,
+      "acc_date": "2026-07-19"
+    },
+    {
+      "id": "nxt-002-03",
+      "type": "NextAction",
+      "text": "First monthly `/forge-checkup` due ~2026-08-19.",
+      "acc_seq": 2,
+      "acc_date": "2026-07-19"
+    },
+    {
+      "id": "nxt-002-04",
+      "type": "NextAction",
+      "text": "Revisit gate thresholds + per-mode rendering with soak data.",
+      "acc_seq": 2,
+      "acc_date": "2026-07-19"
+    },
+    {
+      "id": "nxt-003-01",
+      "type": "NextAction",
+      "text": "Decide whether to create the GitHub remote for research-prompt-forge and push (badge/clone URLs currently point at nothing).",
+      "acc_seq": 3,
+      "acc_date": "2026-07-19"
+    },
+    {
+      "id": "nxt-003-02",
+      "type": "NextAction",
+      "text": "Add the insights-review load-bearing pick to `~/.claude/CLAUDE.md` now that the symlink is fixed: cap adversarial-audit/exploration fan-out at \u22644 concurrent agents + guaranteed process cleanup.",
+      "acc_seq": 3,
+      "acc_date": "2026-07-19"
+    },
+    {
+      "id": "nxt-003-03",
+      "type": "NextAction",
+      "text": "If/when a soak period starts (real prompts + reviewer ratings), revisit the unvalidated gate thresholds noted in `docs/ARCHITECTURE.md`'s Known Gaps.",
+      "acc_seq": 3,
+      "acc_date": "2026-07-19"
+    },
+    {
+      "id": "nxt-003-04",
+      "type": "NextAction",
+      "text": "`~/.claude/insights-history/state.json` has `friction:uncontrolled-agent-fan-out-and-orphaned-processes` open \u2014 ack/resolve once #2 above lands (`/insights-review ack <id>`).",
+      "acc_seq": 3,
+      "acc_date": "2026-07-19"
+    }
+  ],
+  "edges": [
+    {
+      "from": "acc-001",
+      "to": "acc-002",
+      "type": "FOLLOWS"
+    },
+    {
+      "from": "acc-002",
+      "to": "acc-003",
+      "type": "FOLLOWS"
+    },
+    {
+      "from": "dec-001-01",
+      "to": "acc-001",
+      "type": "PART_OF"
+    },
+    {
+      "from": "dec-001-02",
+      "to": "acc-001",
+      "type": "PART_OF"
+    },
+    {
+      "from": "dec-001-03",
+      "to": "acc-001",
+      "type": "PART_OF"
+    },
+    {
+      "from": "dec-001-04",
+      "to": "acc-001",
+      "type": "PART_OF"
+    },
+    {
+      "from": "dec-001-05",
+      "to": "acc-001",
+      "type": "PART_OF"
+    },
+    {
+      "from": "dec-001-06",
+      "to": "acc-001",
+      "type": "PART_OF"
+    },
+    {
+      "from": "dec-001-07",
+      "to": "acc-001",
+      "type": "PART_OF"
+    },
+    {
+      "from": "dec-001-08",
+      "to": "acc-001",
+      "type": "PART_OF"
+    },
+    {
+      "from": "dec-002-01",
+      "to": "acc-002",
+      "type": "PART_OF"
+    },
+    {
+      "from": "dec-002-02",
+      "to": "acc-002",
+      "type": "PART_OF"
+    },
+    {
+      "from": "dec-002-03",
+      "to": "acc-002",
+      "type": "PART_OF"
+    },
+    {
+      "from": "dec-002-04",
+      "to": "acc-002",
+      "type": "PART_OF"
+    },
+    {
+      "from": "dec-002-05",
+      "to": "acc-002",
+      "type": "PART_OF"
+    },
+    {
+      "from": "dec-002-06",
+      "to": "acc-002",
+      "type": "PART_OF"
+    },
+    {
+      "from": "dec-002-07",
+      "to": "acc-002",
+      "type": "PART_OF"
+    },
+    {
+      "from": "dec-002-08",
+      "to": "acc-002",
+      "type": "PART_OF"
+    },
+    {
+      "from": "dec-003-01",
+      "to": "acc-003",
+      "type": "PART_OF"
+    },
+    {
+      "from": "dec-003-02",
+      "to": "acc-003",
+      "type": "PART_OF"
+    },
+    {
+      "from": "dec-003-03",
+      "to": "acc-003",
+      "type": "PART_OF"
+    },
+    {
+      "from": "dec-003-04",
+      "to": "acc-003",
+      "type": "PART_OF"
+    },
+    {
+      "from": "dec-003-05",
+      "to": "acc-003",
+      "type": "PART_OF"
+    },
+    {
+      "from": "dec-003-06",
+      "to": "acc-003",
+      "type": "PART_OF"
+    },
+    {
+      "from": "dec-003-07",
+      "to": "acc-003",
+      "type": "PART_OF"
+    },
+    {
+      "from": "oq-001-01",
+      "to": "acc-001",
+      "type": "PART_OF"
+    },
+    {
+      "from": "oq-001-02",
+      "to": "acc-001",
+      "type": "PART_OF"
+    },
+    {
+      "from": "oq-001-03",
+      "to": "acc-001",
+      "type": "PART_OF"
+    },
+    {
+      "from": "oq-001-04",
+      "to": "acc-001",
+      "type": "PART_OF"
+    },
+    {
+      "from": "oq-002-01",
+      "to": "acc-002",
+      "type": "PART_OF"
+    },
+    {
+      "from": "oq-002-02",
+      "to": "acc-002",
+      "type": "PART_OF"
+    },
+    {
+      "from": "oq-002-03",
+      "to": "acc-002",
+      "type": "PART_OF"
+    },
+    {
+      "from": "oq-002-04",
+      "to": "acc-002",
+      "type": "PART_OF"
+    },
+    {
+      "from": "oq-003-01",
+      "to": "acc-003",
+      "type": "PART_OF"
+    },
+    {
+      "from": "oq-003-02",
+      "to": "acc-003",
+      "type": "PART_OF"
+    },
+    {
+      "from": "oq-003-03",
+      "to": "acc-003",
+      "type": "PART_OF"
+    },
+    {
+      "from": "oq-003-04",
+      "to": "acc-003",
+      "type": "PART_OF"
+    },
+    {
+      "from": "rej-001-01",
+      "to": "acc-001",
+      "type": "PART_OF"
+    },
+    {
+      "from": "rej-001-02",
+      "to": "acc-001",
+      "type": "PART_OF"
+    },
+    {
+      "from": "rej-001-03",
+      "to": "acc-001",
+      "type": "PART_OF"
+    },
+    {
+      "from": "rej-001-04",
+      "to": "acc-001",
+      "type": "PART_OF"
+    },
+    {
+      "from": "rej-001-05",
+      "to": "acc-001",
+      "type": "PART_OF"
+    },
+    {
+      "from": "rej-001-06",
+      "to": "acc-001",
+      "type": "PART_OF"
+    },
+    {
+      "from": "rej-001-07",
+      "to": "acc-001",
+      "type": "PART_OF"
+    },
+    {
+      "from": "rej-001-08",
+      "to": "acc-001",
+      "type": "PART_OF"
+    },
+    {
+      "from": "rej-002-01",
+      "to": "acc-002",
+      "type": "PART_OF"
+    },
+    {
+      "from": "rej-002-02",
+      "to": "acc-002",
+      "type": "PART_OF"
+    },
+    {
+      "from": "rej-002-03",
+      "to": "acc-002",
+      "type": "PART_OF"
+    },
+    {
+      "from": "rej-002-04",
+      "to": "acc-002",
+      "type": "PART_OF"
+    },
+    {
+      "from": "rej-002-05",
+      "to": "acc-002",
+      "type": "PART_OF"
+    },
+    {
+      "from": "rej-002-06",
+      "to": "acc-002",
+      "type": "PART_OF"
+    },
+    {
+      "from": "rej-003-01",
+      "to": "acc-003",
+      "type": "PART_OF"
+    },
+    {
+      "from": "rej-003-02",
+      "to": "acc-003",
+      "type": "PART_OF"
+    },
+    {
+      "from": "rej-003-03",
+      "to": "acc-003",
+      "type": "PART_OF"
+    },
+    {
+      "from": "rej-003-04",
+      "to": "acc-003",
+      "type": "PART_OF"
+    },
+    {
+      "from": "rej-003-05",
+      "to": "acc-003",
+      "type": "PART_OF"
+    },
+    {
+      "from": "nxt-001-01",
+      "to": "acc-001",
+      "type": "PART_OF"
+    },
+    {
+      "from": "nxt-001-02",
+      "to": "acc-001",
+      "type": "PART_OF"
+    },
+    {
+      "from": "nxt-001-03",
+      "to": "acc-001",
+      "type": "PART_OF"
+    },
+    {
+      "from": "nxt-001-04",
+      "to": "acc-001",
+      "type": "PART_OF"
+    },
+    {
+      "from": "nxt-001-05",
+      "to": "acc-001",
+      "type": "PART_OF"
+    },
+    {
+      "from": "nxt-001-06",
+      "to": "acc-001",
+      "type": "PART_OF"
+    },
+    {
+      "from": "nxt-002-01",
+      "to": "acc-002",
+      "type": "PART_OF"
+    },
+    {
+      "from": "nxt-002-02",
+      "to": "acc-002",
+      "type": "PART_OF"
+    },
+    {
+      "from": "nxt-002-03",
+      "to": "acc-002",
+      "type": "PART_OF"
+    },
+    {
+      "from": "nxt-002-04",
+      "to": "acc-002",
+      "type": "PART_OF"
+    },
+    {
+      "from": "nxt-003-01",
+      "to": "acc-003",
+      "type": "PART_OF"
+    },
+    {
+      "from": "nxt-003-02",
+      "to": "acc-003",
+      "type": "PART_OF"
+    },
+    {
+      "from": "nxt-003-03",
+      "to": "acc-003",
+      "type": "PART_OF"
+    },
+    {
+      "from": "nxt-003-04",
+      "to": "acc-003",
+      "type": "PART_OF"
+    }
+  ]
+}
