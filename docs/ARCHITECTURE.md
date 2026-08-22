@@ -216,6 +216,14 @@ These are real absences, not oversights hidden from you:
 - **Per-mode rendering is not implemented.** Renderers are mode-agnostic —
   a `chat`-mode rewrite still emits the same verbose prompt shape as
   `deep-research` (tracked in `docs/acc/001-2026-07-19-polyprompt-build.md`, Open Questions).
+- **No API-surface profile.** The taxonomy's `engine` and `mode` dimensions
+  both describe a vendor's *consumer* product (a chat box you paste into).
+  There is no way to say the destination is the developer API, where
+  "structured output" is a JSON Schema in a request field rather than a
+  sentence — so `structured-output`, `citation-demand`, `length-target`, and
+  `source-filter-operators` each name one goal with two different mechanisms.
+  Planned as M8; design, rejected alternatives, and the dedupe-key collision it
+  turns on are in `docs/scratchpad-api-surface-profile.md`.
 - **Gate thresholds are unvalidated defaults.** `K_MIN=5`, `THETA_HIGH=0.7`,
   `DIVERSITY_MIN=3`, `MIN_PENDING_MEMOS=3`, `STALE_DAYS=30` are engineering
   judgment calls, not derived from data — there hasn't been a real usage
