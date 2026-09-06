@@ -1,26 +1,24 @@
 """M5 — private corpus push: git/gh orchestration via an injectable runner.
 
-The runner is faked so the whole push path (init, repo-create, commit, push)
-is exercised deterministically offline. Real subprocess behavior is out of
-scope for these unit tests — that seam is a thin wrapper (SubprocessRunner).
+The runner is faked so the whole push path is exercised offline. The fake
+models creation and remote setup, including the privacy metadata now required
+before every push. No test shells out to real git or gh.
 """
 
+import json
 from pathlib import Path
 
 from polyprompt.push import RunResult, push_corpus
 
 
 class FakeRunner:
-    """Records argv calls and answers them by matching command prefixes.
+    """Records argv, applies explicit rules first, then models repo state."""
 
-    Rules are checked in insertion order; first match wins. Unmatched `git
-    status` defaults to a dirty tree so commits proceed; everything else
-    defaults to success.
-    """
-
-    def __init__(self):
+    def __init__(self, *, repo_exists=True, origin=None):
         self.calls: list[list[str]] = []
         self._rules: list[tuple[tuple[str, ...], RunResult]] = []
+        self.repo_exists = repo_exists
+        self.origin = origin
 
     def when(self, *prefix, returncode=0, stdout="", stderr=""):
         self._rules.append((prefix, RunResult(returncode, stdout, stderr)))
@@ -31,8 +29,28 @@ class FakeRunner:
         for prefix, result in self._rules:
             if tuple(argv[: len(prefix)]) == prefix:
                 return result
+        if argv[:3] == ["gh", "repo", "view"]:
+            if not self.repo_exists:
+                return RunResult(1, stderr="not found")
+            name = argv[3] if "/" in argv[3] else "haremantra/" + argv[3]
+            return RunResult(0, json.dumps({
+                "url": "https://github.com/" + name,
+                "nameWithOwner": name, "isPrivate": True, "visibility": "PRIVATE",
+            }))
+        if argv[:3] == ["gh", "repo", "create"]:
+            self.repo_exists = True
+            name = argv[3] if "/" in argv[3] else "haremantra/" + argv[3]
+            self.origin = "https://github.com/" + name
+            return RunResult(0)
+        if argv[:3] == ["git", "remote", "get-url"]:
+            return RunResult(0, self.origin) if self.origin else RunResult(1)
+        if argv[:3] == ["git", "remote", "add"]:
+            self.origin = argv[4]
+            return RunResult(0)
         if argv[:2] == ["git", "status"]:
             return RunResult(0, stdout="?? memo.md\n")
+        if argv[:2] == ["git", "rev-parse"]:
+            return RunResult(0, "a" * 40 + "\n")
         return RunResult(0)
 
     def ran(self, *prefix) -> bool:
@@ -53,12 +71,7 @@ def corpus_with_memo(tmp_path) -> Path:
 
 
 def fresh_repo_runner() -> FakeRunner:
-    # repo doesn't exist yet; no local remote configured yet.
-    return (
-        FakeRunner()
-        .when("gh", "repo", "view", returncode=1, stderr="not found")
-        .when("git", "remote", "get-url", returncode=1)
-    )
+    return FakeRunner(repo_exists=False)
 
 
 class TestHappyPath:
@@ -99,26 +112,18 @@ class TestHappyPath:
 class TestExistingRemoteRepo:
     def test_uses_existing_repo_without_recreating(self, tmp_path):
         corpus = corpus_with_memo(tmp_path)
-        runner = (
-            FakeRunner()
-            .when("gh", "repo", "view", returncode=0,
-                  stdout="https://github.com/haremantra/corpus-repo")
-            .when("git", "remote", "get-url", returncode=1)
-        )
+        runner = FakeRunner(repo_exists=True)
         res = push_corpus(corpus, "corpus-repo", runner=runner, message="m")
         assert not runner.ran("gh", "repo", "create")
         assert runner.ran("git", "remote", "add")
         assert res.status == "pushed"
 
-    def test_skips_remote_setup_when_origin_present(self, tmp_path):
+    def test_existing_origin_is_verified_without_reconfiguring(self, tmp_path):
         corpus = corpus_with_memo(tmp_path)
         (corpus / ".git").mkdir()
-        runner = FakeRunner().when(
-            "git", "remote", "get-url", returncode=0,
-            stdout="https://github.com/haremantra/corpus-repo",
-        )
+        runner = FakeRunner(origin="https://github.com/haremantra/corpus-repo")
         res = push_corpus(corpus, "corpus-repo", runner=runner, message="m")
-        assert not runner.ran("gh", "repo", "view")
+        assert runner.ran("gh", "repo", "view")
         assert not runner.ran("git", "remote", "add")
         assert res.status == "pushed"
 
@@ -133,7 +138,7 @@ class TestOfflineFallback:
         res = push_corpus(corpus, "corpus-repo", runner=runner, message="m")
         assert res.status == "local"
         assert res.committed and not res.pushed
-        assert memo.exists()  # local copy retained
+        assert memo.exists()
         assert "retain" in res.report.lower()
         assert "local" in res.report.lower()
 
@@ -166,15 +171,14 @@ class TestNothingToPush:
         assert res.status == "failed"
         assert not res.committed
 
-    def test_clean_tree_is_noop(self, tmp_path):
+    def test_clean_tree_pushes_existing_commits_without_recommitting(self, tmp_path):
         corpus = corpus_with_memo(tmp_path)
         (corpus / ".git").mkdir()
-        runner = (
-            FakeRunner()
-            .when("git", "remote", "get-url", returncode=0,
-                  stdout="https://github.com/haremantra/corpus-repo")
-            .when("git", "status", returncode=0, stdout="")  # clean tree
+        runner = FakeRunner(origin="https://github.com/haremantra/corpus-repo").when(
+            "git", "status", returncode=0, stdout=""
         )
         res = push_corpus(corpus, "corpus-repo", runner=runner, message="m")
-        assert res.status == "noop"
+        assert res.status == "pushed"
+        assert not res.committed
         assert not runner.ran("git", "commit")
+        assert runner.ran("git", "push")
