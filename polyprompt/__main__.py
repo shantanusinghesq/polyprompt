@@ -133,7 +133,11 @@ def _cmd_review(args: argparse.Namespace) -> int:
         print(f"error: {exc}", file=sys.stderr)
         return 2
 
-    sidecar = save_review(review, memo_path.parent)
+    try:
+        sidecar = save_review(review, memo_path.parent)
+    except (OSError, ValueError) as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
     print(f"Review saved: {sidecar}")
 
     graph_path = Path(args.graph)

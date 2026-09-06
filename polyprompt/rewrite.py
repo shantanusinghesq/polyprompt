@@ -1,27 +1,21 @@
-"""Profile-driven rewriters.
+"""Deterministic, mode-aware prompt rendering with traceable tactic IDs.
 
-`rewrite(ir, profile)` dispatches on the profile's `structure` to a renderer
-that assembles an engine-tuned prompt from the IR. Each renderer returns the
-rewritten prompt plus the taxonomy **tactic IDs** it applied. Emitting IDs (not
-free-text prose) keeps every rewrite graph-ready and avoids the label drift the
-taxonomy decision (scratchpad D-08) was designed to prevent — the human-readable
-rationale is looked up from the taxonomy at display / memo time.
-
-M1 is deterministic template assembly — "the profile supplies guardrails" (PRD).
-Model-driven phrasing polish is a later refinement. Mode is hardcoded to the
-profile's `default_mode` until M3.
+User constraints, exact recency windows, exclusions, and requested output
+formats survive every renderer. XML escaping protects section structure;
+it is not a claim that prompt injection is solved.
 """
 
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
+from html import escape
 
 from polyprompt.ir import PromptIR
 from polyprompt.mode import ModeDecision
 from polyprompt.profile import PlatformProfile
 
-_YEAR_RE = re.compile(r"(20\d{2})")
+_YEAR_RE = re.compile(r"(20\d{2})\+")
 
 
 @dataclass
@@ -29,9 +23,9 @@ class RewriteResult:
     engine: str
     mode: str
     prompt: str
-    tactics: list[str]  # taxonomy tactic IDs applied
+    tactics: list[str]
     profile_version: str
-    mode_source: str = "default"  # "rules" | "model" | "default" | "forced"
+    mode_source: str = "default"
     mode_reason: str = "profile default (no detection)"
 
 
@@ -43,82 +37,80 @@ def _sources_phrase(ir: PromptIR) -> str:
     return ", ".join(ir.source_preferences) or "authoritative, primary sources where possible"
 
 
-def _render_role_framed(ir: PromptIR, profile: PlatformProfile) -> tuple[str, list[str]]:
-    """ChatGPT — explicit expert role + numbered constraints + structured output."""
+def _render_role_framed(ir: PromptIR, profile: PlatformProfile,
+                        mode: str = "deep-research") -> tuple[str, list[str]]:
+    chat = mode == "chat"
     lines = [
-        "You are an expert research analyst. Conduct deep research on the task below "
-        "and produce a structured, well-cited report.",
-        "",
-        f"Task: {ir.intent}",
-        "",
-        "Constraints:",
+        ("You are an expert research analyst. Answer the task directly and concisely."
+         if chat else "You are an expert research analyst. Conduct deep research on the task below "
+         "and produce a structured, well-cited report."),
+        "", f"Task: {ir.intent}", "", "Constraints:",
         f"- Time frame: {_recency_phrase(ir)}",
         f"- Depth: {ir.depth} — {ir.reasoning_layers} layer(s) of analysis",
         f"- Sources: {_sources_phrase(ir)}",
     ]
     lines += [f"- {c}" for c in ir.constraints]
-    lines += ["", "Deliverable: a structured report with clear sections, key findings, and inline citations."]
+    deliverable = (ir.output_format or
+                   ("a concise answer with inline citations where needed" if chat else
+                    "a structured report with clear sections, key findings, and inline citations"))
+    lines += ["", f"Deliverable: {deliverable}."]
     tactics = ["role-framing", "explicit-constraints", "structured-output", "source-preference", "citation-demand"]
     return "\n".join(lines), tactics
 
 
-def _render_research_plan(ir: PromptIR, profile: PlatformProfile) -> tuple[str, list[str]]:
-    """Gemini — approvable research plan first, then breadth-first execution."""
-    lines = [
-        f"Research task: {ir.intent}",
-        "",
-        "First outline a brief research plan — the areas you'll investigate and the "
-        "source types you'll consult — then carry it out.",
-        "",
-        "Scope:",
-        f"- Recency: {_recency_phrase(ir)}",
-        f"- Analytical depth: {ir.depth} ({ir.reasoning_layers} layer(s))",
-        "- Breadth: survey multiple perspectives and source types",
-        f"- Sources: {_sources_phrase(ir)}",
-    ]
+def _render_research_plan(ir: PromptIR, profile: PlatformProfile,
+                          mode: str = "deep-research") -> tuple[str, list[str]]:
+    chat = mode == "chat"
+    lines = [f"Research task: {ir.intent}", "",
+             ("Answer directly and concisely; no separate research-plan phase is needed."
+              if chat else "First outline a brief research plan — the areas you'll investigate and the "
+              "source types you'll consult — then carry it out."),
+             "", "Scope:", f"- Recency: {_recency_phrase(ir)}",
+             f"- Analytical depth: {ir.depth} ({ir.reasoning_layers} layer(s))"]
+    if not chat:
+        lines.append("- Breadth: survey multiple perspectives and source types")
+    lines.append(f"- Sources: {_sources_phrase(ir)}")
     lines += [f"- {c}" for c in ir.constraints]
-    lines += ["", "Output: a comprehensive, well-organized synthesis with citations."]
-    tactics = ["research-plan", "breadth-directive", "source-preference", "citation-demand"]
+    output = ir.output_format or ("a concise answer with citations" if chat else
+                                  "a comprehensive, well-organized synthesis with citations")
+    lines += ["", f"Output: {output}."]
+    tactics = (["structured-output"] if chat else ["research-plan", "breadth-directive"])
+    tactics += ["source-preference", "citation-demand"]
     return "\n".join(lines), tactics
 
 
-def _render_xml_sections(ir: PromptIR, profile: PlatformProfile) -> tuple[str, list[str]]:
-    """Claude — XML-delimited sections + explicit reasoning + faithfulness."""
-    parts = [
-        "<task>",
-        ir.intent,
-        "</task>",
-        "",
-        "<constraints>",
-        f"- recency: {_recency_phrase(ir)}",
-        f"- depth: {ir.depth} — reason through {ir.reasoning_layers} layer(s) before concluding",
-        f"- sources: {_sources_phrase(ir)}",
-    ]
-    parts += [f"- {c}" for c in ir.constraints]
-    parts += [
-        "</constraints>",
-        "",
-        "<instructions>",
-        "Research thoroughly, reason step by step, and synthesize a faithful, well-cited "
-        "answer. Flag uncertainty explicitly rather than guessing.",
-        "</instructions>",
-    ]
+def _render_xml_sections(ir: PromptIR, profile: PlatformProfile,
+                         mode: str = "deep-research") -> tuple[str, list[str]]:
+    parts = ["<task>", escape(ir.intent, quote=False), "</task>", "", "<constraints>",
+             f"- recency: {escape(_recency_phrase(ir), quote=False)}",
+             f"- depth: {escape(ir.depth, quote=False)} — reason through {ir.reasoning_layers} layer(s) before concluding",
+             f"- sources: {escape(_sources_phrase(ir), quote=False)}"]
+    parts += [f"- {escape(c, quote=False)}" for c in ir.constraints]
+    instruction = ("Answer directly and concisely with citations where needed. Flag uncertainty explicitly "
+                   "rather than guessing." if mode == "chat" else
+                   "Research thoroughly, reason step by step, and synthesize a faithful, well-cited "
+                   "answer. Flag uncertainty explicitly rather than guessing.")
+    parts += ["</constraints>", "", "<instructions>", instruction, "</instructions>"]
     tactics = ["xml-structure", "reasoning-depth", "uncertainty-flagging", "source-preference", "citation-demand"]
     return "\n".join(parts), tactics
 
 
-def _render_concise_query(ir: PromptIR, profile: PlatformProfile) -> tuple[str, list[str]]:
-    """Perplexity — concise keyword query + source/recency operators + citations."""
+def _render_concise_query(ir: PromptIR, profile: PlatformProfile,
+                          mode: str = "deep-research") -> tuple[str, list[str]]:
     tail = [f"Prefer {_sources_phrase(ir)}"]
-    match = _YEAR_RE.search(ir.recency_window or "")
-    if match and any(op.startswith("after:") for op in profile.source_filter_syntax):
-        tail.append(f"after:{int(match.group(1)) - 1}")
-    elif ir.recency_window:
+    tactics = ["concise-query", "source-preference", "citation-demand"]
+    if ir.recency_window:
         tail.append(f"recency {ir.recency_window}")
+        match = _YEAR_RE.fullmatch(ir.recency_window.strip())
+        if match and any(op.startswith("after:") for op in profile.source_filter_syntax):
+            tail.append(f"after:{int(match.group(1)) - 1}")
+            tactics.append("source-filter-operators")
+    tail.append(f"Depth: {ir.depth} ({ir.reasoning_layers} layer(s))")
+    tail.extend(ir.constraints)
+    if mode == "chat":
+        tail.append("Answer concisely")
     tail.append("Cite sources")
-    text = f"{ir.intent.rstrip('.')}. " + ". ".join(tail) + "."
-    tactics = ["concise-query", "source-filter-operators", "source-preference", "citation-demand"]
-    return text, tactics
+    return f"{ir.intent.rstrip('.')}. " + ". ".join(tail) + ".", tactics
 
 
 _RENDERERS = {
@@ -129,37 +121,28 @@ _RENDERERS = {
 }
 
 
-def rewrite(
-    ir: PromptIR,
-    profile: PlatformProfile,
-    mode_decision: ModeDecision | None = None,
-) -> RewriteResult:
+def rewrite(ir: PromptIR, profile: PlatformProfile,
+            mode_decision: ModeDecision | None = None) -> RewriteResult:
+    if mode_decision is not None:
+        mode, source, reason = mode_decision.mode, mode_decision.source, mode_decision.reason
+    else:
+        mode, source, reason = profile.default_mode, "default", "profile default (no detection)"
+    if mode not in ("chat", "deep-research"):
+        raise ValueError(f"unsupported mode: {mode!r}")
     renderer = _RENDERERS.get(profile.structure)
     if renderer is None:
         raise ValueError(f"no renderer for structure: {profile.structure!r}")
-    text, tactics = renderer(ir, profile)
-
-    # Conditional tactics that depend on the IR content, applied uniformly.
-    if ir.recency_window and "recency-constraint" not in tactics:
-        tactics = [*tactics, "recency-constraint"]
-    if ir.constraints and "disambiguation" not in tactics:
-        tactics = [*tactics, "disambiguation"]
-
-    if mode_decision is not None:
-        mode = mode_decision.mode
-        mode_source = mode_decision.source
-        mode_reason = mode_decision.reason
-    else:
-        mode = profile.default_mode
-        mode_source = "default"
-        mode_reason = "profile default (no detection)"
-
-    return RewriteResult(
-        engine=profile.engine,
-        mode=mode,
-        prompt=text,
-        tactics=tactics,
-        profile_version=profile.version,
-        mode_source=mode_source,
-        mode_reason=mode_reason,
-    )
+    constraints = [*ir.constraints, *(f"Exclude: {e}" for e in ir.exclusions)]
+    if ir.output_format:
+        constraints.append(f"Output format: {ir.output_format}")
+    render_ir = replace(ir, constraints=constraints)
+    text, tactics = renderer(render_ir, profile, mode)
+    if ir.recency_window:
+        tactics.append("recency-constraint")
+    if ir.constraints:
+        tactics.append("disambiguation")
+    if mode == "chat":
+        tactics.append("length-target")
+    return RewriteResult(engine=profile.engine, mode=mode, prompt=text,
+                         tactics=list(dict.fromkeys(tactics)), profile_version=profile.version,
+                         mode_source=source, mode_reason=reason)
