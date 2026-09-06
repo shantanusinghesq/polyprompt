@@ -7,8 +7,8 @@ layer, a stub in tests — this is the seam that keeps the golden gate
 deterministic). Every decision carries a reason and a source, recorded on the
 rewrite and in the memo frontmatter.
 
-Mode currently *annotates* the rewrite (renderers stay mode-agnostic in M3);
-per-mode rendering is a later refinement.
+Mode selects the renderer's chat or deep-research instructions. It does not
+activate a provider's UI mode or execute the prompt (see docs/COMPATIBILITY.md).
 """
 
 from __future__ import annotations
