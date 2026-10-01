@@ -18,7 +18,9 @@
     {"id": "length-target", "label": "Length / verbosity target", "description": "Signal desired output length to match the engine's verbosity sweet spot."},
     {"id": "negative-constraints", "label": "Negative constraints", "description": "State exclusions — what to avoid or leave out."},
     {"id": "decomposition", "label": "Task decomposition", "description": "Break a compound request into ordered sub-questions."},
-    {"id": "persona-calibration", "label": "Audience persona calibration", "description": "Tune tone and depth to a stated target audience."}
+    {"id": "persona-calibration", "label": "Audience persona calibration", "description": "Tune tone and depth to a stated target audience."},
+    {"id": "premise-demotion", "label": "Premise demotion", "description": "Move an asserted-but-unverified premise out of the retrieval lead into an explicit claim-to-verify line, so nearest-neighbour search is not keyed on the assertion."},
+    {"id": "entity-site-scoping", "label": "Entity site scoping", "description": "Map named organisations to their first-party domains and emit site: operators, so claims about an org are checked against that org's own publications."}
   ],
   "tag_dimensions": {
     "method": ["qualitative", "quantitative", "mixed"],

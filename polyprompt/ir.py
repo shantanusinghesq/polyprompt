@@ -27,6 +27,37 @@ _SOURCE_HINTS = {
 
 _YEAR_RE = re.compile(r"(20\d{2})\+?")
 
+# Canonical org entities -> used by retrieval-oriented renderers for source
+# scoping. Alias table is hand-maintained; drifts as labs rename products.
+_ORG_ALIASES = {
+    "openai": "OpenAI",
+    "chatgpt": "OpenAI",
+    "anthropic": "Anthropic",
+    "claude": "Anthropic",
+    "google deepmind": "Google DeepMind",
+    "deepmind": "Google DeepMind",
+    "gemini": "Google DeepMind",
+    "meta ai": "Meta AI",
+    "llama": "Meta AI",
+    "microsoft": "Microsoft",
+    "xai": "xAI",
+    "grok": "xAI",
+    "mistral": "Mistral AI",
+    "cohere": "Cohere",
+}
+
+
+def _extract_entities(core: str) -> list[str]:
+    """Canonical org names mentioned in the prompt, first-mention order."""
+    low = core.lower()
+    found: list[str] = []
+    for alias, canonical in _ORG_ALIASES.items():
+        if canonical in found:
+            continue
+        if re.search(rf"\b{re.escape(alias)}\b", low):
+            found.append(canonical)
+    return found
+
 
 @dataclass
 class PromptIR:
@@ -75,6 +106,7 @@ def normalize(prompt: str, intake: IntakeAnswers | None = None) -> PromptIR:
 
     return PromptIR(
         intent=core,
+        entities=_extract_entities(core),
         depth=DEPTH_LABELS[depth],
         reasoning_layers=depth,
         recency_window=recency,

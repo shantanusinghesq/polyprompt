@@ -107,18 +107,149 @@ def _render_xml_sections(ir: PromptIR, profile: PlatformProfile) -> tuple[str, l
     return "\n".join(parts), tactics
 
 
+# Retrieval-stage helpers (Perplexity). A RAG engine embeds and keyword-matches
+# the query BEFORE any generation, so narrative prose and asserted premises
+# steer which documents come back, not merely how the answer reads.
+
+_ASK_RE = re.compile(
+    r"\b(what|how|which|why|who|whom|whose|compare|identify|list)\b", re.I
+)
+_SENT_RE = re.compile(r"(?<=[.?!])\s+")
+
+# "where"/"when" are omitted above on purpose: in prose they are usually
+# relativisers ("an exercise WHERE third parties were breached"), so including
+# them misclassifies declarative premises as asks. The survivors still relativise
+# after a preposition ("an exercise IN WHICH ...", "the basis ON WHICH ..."), so
+# a marker is only an ask when it does not directly follow one.
+_PREPOSITIONS = frozenset(
+    """in of for to at by with on from after before during through under over
+    into about against within across""".split()
+)
+
+
+def _is_ask(sentence: str) -> bool:
+    """True when the sentence asks something, rather than merely relativising."""
+    for match in _ASK_RE.finditer(sentence):
+        preceding = re.findall(r"[A-Za-z']+", sentence[: match.start()])
+        if not preceding or preceding[-1].lower() not in _PREPOSITIONS:
+            return True
+    return False
+
+_STOPWORDS = frozenset(
+    """a an the and or but of for to in on at by with from as is are was were be been
+    being that this these those it its their there here all any both each few more most
+    other some such no nor not only own same so than too very can will just should now
+    do does did have has had they them he she his her you your we our i me my if then
+    else while about across after before during over under between into respective like
+    topics thing things etc""".split()
+)
+
+
+def _compress(text: str, seed: list[str], keep: int = 30) -> str:
+    """Deterministic keyword compression: drop stopwords, dedupe, cap length.
+
+    `seed` terms are pre-marked as seen so an entity prefix is not repeated.
+    """
+    seen = {
+        word.lower()
+        for item in seed
+        for word in re.findall(r"[A-Za-z][A-Za-z0-9\-']+", item)
+    }
+    out: list[str] = []
+    for raw in re.findall(r"[A-Za-z][A-Za-z0-9\-']+", text):
+        word = raw.lower()
+        if word in _STOPWORDS or len(word) < 3 or word in seen:
+            continue
+        seen.add(word)
+        out.append(raw)
+        if len(out) >= keep:
+            break
+    return " ".join(out)
+
+
+def _clip(text: str, limit: int = 260) -> str:
+    flat = " ".join(text.split())
+    if len(flat) <= limit:
+        return flat.rstrip(".")
+    return flat[:limit].rsplit(" ", 1)[0].rstrip(",.;:") + "..."
+
+
+def _split_ask_vs_premise(core: str) -> tuple[list[str], list[str]]:
+    """Separate the questions from the declarative framing.
+
+    Sentences carrying an ask-marker build the retrieval lead; declaratives are
+    demoted to a claim-to-verify line. If nothing parses as an ask, fall back to
+    the whole prompt as the lead and demote nothing.
+    """
+    sentences = [s.strip() for s in _SENT_RE.split(core) if s.strip()]
+    ask = [s for s in sentences if _is_ask(s)]
+    if not ask:
+        return sentences, []
+    return ask, [s for s in sentences if not _is_ask(s)]
+
+
+def _site_operators(ir: PromptIR, profile: PlatformProfile) -> str:
+    if not any(op.startswith("site:") for op in profile.source_filter_syntax):
+        return ""
+    domains = [d for e in ir.entities for d in profile.site_map.get(e, [])]
+    if not domains:
+        return ""
+    return " OR ".join(f"site:{d}" for d in dict.fromkeys(domains))
+
+
 def _render_concise_query(ir: PromptIR, profile: PlatformProfile) -> tuple[str, list[str]]:
-    """Perplexity — concise keyword query + source/recency operators + citations."""
-    tail = [f"Prefer {_sources_phrase(ir)}"]
+    """Perplexity — retrieval-first: keyword lead, operators, demoted premise.
+
+    Unlike the three chat renderers, this one must survive a retrieval stage.
+    It therefore (a) leads with the compressed *asks* plus canonical entities,
+    (b) scopes first-party claims with site:, (c) demotes declarative premises
+    out of the lead, and (d) asks for per-entity decomposition, because one
+    embedding cannot represent several sub-questions at once.
+    """
+    tactics = ["concise-query", "source-filter-operators", "source-preference",
+               "citation-demand"]
+    ask, premise = _split_ask_vs_premise(ir.intent)
+
+    operators: list[str] = []
     match = _YEAR_RE.search(ir.recency_window or "")
     if match and any(op.startswith("after:") for op in profile.source_filter_syntax):
-        tail.append(f"after:{int(match.group(1)) - 1}")
+        operators.append(f"after:{int(match.group(1)) - 1}")
     elif ir.recency_window:
-        tail.append(f"recency {ir.recency_window}")
-    tail.append("Cite sources")
-    text = f"{ir.intent.rstrip('.')}. " + ". ".join(tail) + "."
-    tactics = ["concise-query", "source-filter-operators", "source-preference", "citation-demand"]
-    return text, tactics
+        operators.append(f"recency {ir.recency_window}")
+
+    lead = " ".join(
+        part
+        for part in (
+            " ".join(ir.entities),
+            _compress(" ".join(ask), seed=ir.entities),
+            " ".join(operators),
+        )
+        if part
+    )
+    blocks = [lead]
+
+    sites = _site_operators(ir, profile)
+    if sites:
+        tactics.append("entity-site-scoping")
+        scoped = f"First-party check: ({sites})"
+        if operators:
+            scoped = f"{scoped} {' '.join(operators)}"
+        blocks.append(scoped)
+
+    if premise:
+        tactics.append("premise-demotion")
+        blocks.append("Claim to verify, do not assume true: " + _clip(" ".join(premise)))
+
+    if ir.constraints:
+        tactics.append("disambiguation")
+        blocks.append("Constraint: " + _clip(ir.constraints[0]))
+
+    if len(ir.entities) > 1:
+        tactics.append("decomposition")
+        blocks.append("Search each separately: " + "; ".join(ir.entities) + ".")
+
+    blocks.append(f"Prefer {_sources_phrase(ir)}. Cite sources.")
+    return "\n".join(blocks), tactics
 
 
 _RENDERERS = {

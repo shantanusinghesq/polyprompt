@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import dataclasses
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 _PROFILE_DIR = Path(__file__).parent / "profiles"
@@ -39,6 +39,8 @@ class PlatformProfile:
     strengths: list[str]
     directives: list[str]
     notes: str = ""
+    # entity -> first-party domains, for site: scoping (retrieval engines only)
+    site_map: dict[str, list[str]] = field(default_factory=dict)
 
 
 def load_profile(engine: str) -> PlatformProfile:
