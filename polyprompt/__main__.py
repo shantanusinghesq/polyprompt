@@ -91,7 +91,7 @@ def _cmd_rewrite(args: argparse.Namespace) -> int:
         any_flags = False
         for result in results:
             tags = {**base_tags, "engine": result.engine, "mode": result.mode}
-            for flag in validate(result.tactics, tags, graph):
+            for flag in validate(result.tactics, tags, graph, result.prompt, ir.constraints):
                 any_flags = True
                 print(f"  [{result.engine}] {flag.message}")
         if not any_flags:

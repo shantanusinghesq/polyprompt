@@ -1,6 +1,6 @@
 {
   "engine": "perplexity",
-  "version": "2026.07.0",
+  "version": "2026.10.0",
   "default_mode": "deep-research",
   "structure": "concise-query",
   "length": "concise",
@@ -16,14 +16,44 @@
     "fast search-grounded answers"
   ],
   "directives": [
-    "Compress to keywords",
-    "Add source/recency operators",
+    "Compress the asks to keywords",
+    "Demote unverified premises",
+    "Scope first-party claims with site:",
+    "Add recency operators",
+    "Decompose multi-entity questions",
     "Request citations"
   ],
-  "notes": "Perplexity favors short, search-engine-style queries with operators over verbose role prompts. Hand-authored M1.",
+  "notes": "Perplexity retrieves before it generates: the query string is embedded and keyword-matched first, so verbose narrative and asserted premises steer retrieval, not just phrasing. Lead with the asks, demote declaratives to a claim line, scope named orgs with site:. Hand-authored M1; renderer reworked 2026-10 to target the retrieval stage.",
   "doc_sources": [
     "https://docs.perplexity.ai",
     "https://www.perplexity.ai/hub/faq"
   ],
-  "last_checked": "2026-07-19"
+  "last_checked": "2026-10-01",
+  "site_map": {
+    "OpenAI": [
+      "openai.com"
+    ],
+    "Anthropic": [
+      "anthropic.com"
+    ],
+    "Google DeepMind": [
+      "deepmind.google",
+      "blog.google"
+    ],
+    "Meta AI": [
+      "ai.meta.com"
+    ],
+    "Microsoft": [
+      "microsoft.com"
+    ],
+    "xAI": [
+      "x.ai"
+    ],
+    "Mistral AI": [
+      "mistral.ai"
+    ],
+    "Cohere": [
+      "cohere.com"
+    ]
+  }
 }
